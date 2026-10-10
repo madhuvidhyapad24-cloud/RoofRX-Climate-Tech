@@ -1,0 +1,12 @@
+numpy
+pandas
+scipy
+matplotlib
+requests
+streamlit
+# classifier (optional)
+torch
+torchvision
+pillow
+rasterio
+geopandas
