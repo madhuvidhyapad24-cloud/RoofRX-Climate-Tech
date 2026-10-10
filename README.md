@@ -133,10 +133,4 @@ hundred crops yourself, or drop the classifier claim and say material comes from
 - The ward-level baseline is our own construction, not a reimplementation of any city tool.
 - Synthetic results only until real buildings are loaded.
 
-## Before you submit
 
-1. Replace the values in `roofrx/materials.py` and `web/engine.js` with cited sources and list them here.
-2. Run on at least one real set of buildings and replace the synthetic numbers above.
-3. Confirm the dataset licence on its official page (earlier sources disagreed: CC BY 4.0 vs ODbL).
-4. Enable GitHub Pages, open the live site, try a real weather city, and put the link in this README.
-5. Record the 2 to 4 minute demo video and upload it publicly.
