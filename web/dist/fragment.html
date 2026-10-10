@@ -1,0 +1,1326 @@
+<title>RoofRx</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400..700&display=swap">
+<style>
+/* Layout: a survey sheet. Intro on top, then the live map beside its controls,
+   then results, method and limits below. One bold element: the map. */
+:root {
+  --bg: #f1f3f4;
+  --surface: #fbfcfc;
+  --ground: #e6ebed;
+  --ink: #101c24;
+  --ink-2: #3f505a;
+  --muted: #5d6d77;
+  --line: #d8dfe2;
+  --line-2: #c3ced3;
+  --accent: #2a78d6;
+  --accent-ink: #ffffff;
+  --accent-soft: #dbe9fa;
+  --dot-edge: rgba(16, 28, 36, .22);
+  --heat-0: #fbdcc4;
+  --heat-1: #f6b58a;
+  --heat-2: #ec8a58;
+  --heat-3: #d1562b;
+  --heat-4: #992f15;
+  --warn-bg: #fdf1d6;
+  --warn-ink: #5a3d00;
+  --danger: #b3261e;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1820;
+    --surface: #12242f;
+    --ground: #0e1d27;
+    --ink: #e8eff2;
+    --ink-2: #b6c5cc;
+    --muted: #8b9ea9;
+    --line: #223846;
+    --line-2: #2f4a5b;
+    --accent: #3987e5;
+    --accent-ink: #06121c;
+    --accent-soft: #15324f;
+    --dot-edge: rgba(0, 0, 0, .35);
+    --heat-0: #4c2f27;
+    --heat-1: #804a2f;
+    --heat-2: #b8602f;
+    --heat-3: #e47d3a;
+    --heat-4: #ffab6e;
+    --warn-bg: #3a2f10;
+    --warn-ink: #f3dc9f;
+    --danger: #ff8a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1820;
+  --surface: #12242f;
+  --ground: #0e1d27;
+  --ink: #e8eff2;
+  --ink-2: #b6c5cc;
+  --muted: #8b9ea9;
+  --line: #223846;
+  --line-2: #2f4a5b;
+  --accent: #3987e5;
+  --accent-ink: #06121c;
+  --accent-soft: #15324f;
+  --dot-edge: rgba(0, 0, 0, .35);
+  --heat-0: #4c2f27;
+  --heat-1: #804a2f;
+  --heat-2: #b8602f;
+  --heat-3: #e47d3a;
+  --heat-4: #ffab6e;
+  --warn-bg: #3a2f10;
+  --warn-ink: #f3dc9f;
+  --danger: #ff8a80;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  padding-inline: clamp(16px, 4vw, 40px);
+  padding-block: 0 56px;
+  -webkit-text-size-adjust: 100%;
+}
+.page { max-width: 1240px; margin-inline: auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* top bar */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px 0; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; letter-spacing: -.02em; }
+.brand svg { width: 28px; height: 28px; }
+.nav { display: flex; gap: 20px; font-size: .95rem; }
+.nav a { color: var(--ink-2); text-decoration: none; padding-block: 4px; border-bottom: 2px solid transparent; }
+.nav a:hover { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* intro */
+.intro { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px 56px; align-items: end; padding-block: 28px 4px; }
+.intro h1 { font-size: clamp(2.5rem, 6.2vw, 4.6rem); line-height: .98; font-weight: 800; }
+.intro .lede { color: var(--ink-2); font-size: 1.1rem; max-width: 52ch; }
+.intro .lede + .lede { margin-top: 10px; font-size: .98rem; color: var(--muted); }
+
+/* generic card */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; padding: 16px 20px 0; }
+.card-head h2 { font-size: 1.15rem; }
+.card-body { padding: 14px 20px 20px; }
+.hint { color: var(--muted); font-size: .86rem; }
+
+/* demo grid */
+.demo { display: grid; grid-template-columns: minmax(0, 1fr) 356px; gap: 20px; align-items: start; }
+.notice { background: var(--warn-bg); color: var(--warn-ink); border-radius: 10px; padding: 10px 14px; font-size: .9rem; }
+.stage .card-body { padding: 14px 16px 16px; }
+.mapwrap { position: relative; border-radius: 10px; overflow: hidden; background: var(--ground); border: 1px solid var(--line); }
+#map { display: block; width: 100%; height: auto; }
+#map .grid line { stroke: var(--line); stroke-width: 1; }
+#map .wardlabel { fill: var(--muted); font-family: var(--font-body); font-weight: 600; letter-spacing: .04em; paint-order: stroke; stroke: var(--ground); }
+#map .scale line { stroke: var(--ink-2); stroke-width: 2; }
+#map .scale text { fill: var(--ink-2); font: 500 13px var(--font-body); }
+#map .d { stroke: var(--dot-edge); stroke-width: .6; transition: fill .15s; }
+#map .h0 { fill: var(--heat-0); } #map .h1 { fill: var(--heat-1); } #map .h2 { fill: var(--heat-2); }
+#map .h3 { fill: var(--heat-3); } #map .h4 { fill: var(--heat-4); }
+#map .sel { fill: var(--accent); stroke: var(--surface); stroke-width: 2.2; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: .8rem; line-height: 1.35; min-width: 150px; max-width: 220px; z-index: 3; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+.tip b { display: block; font-size: .86rem; margin-bottom: 2px; }
+.tip span { display: flex; justify-content: space-between; gap: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center; margin-top: 12px; font-size: .86rem; color: var(--ink-2); }
+.legend .key { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+.sw.sel { background: var(--accent); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--line-2); }
+.ramp { display: inline-flex; border-radius: 4px; overflow: hidden; border: 1px solid var(--dot-edge); }
+.ramp i { width: 22px; height: 12px; display: block; }
+.ramp i:nth-child(1) { background: var(--heat-0); } .ramp i:nth-child(2) { background: var(--heat-1); }
+.ramp i:nth-child(3) { background: var(--heat-2); } .ramp i:nth-child(4) { background: var(--heat-3); }
+.ramp i:nth-child(5) { background: var(--heat-4); }
+
+/* segmented control */
+.seg { display: inline-flex; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 6px 12px; border-radius: 7px; font-size: .88rem; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.seg input:checked + span { background: var(--accent); color: var(--accent-ink); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* control panel */
+.panel { display: grid; gap: 16px; }
+@media (min-width: 1021px) { .panel { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; scrollbar-width: thin; } }
+.lead { padding: 20px; display: grid; gap: 6px; }
+.lead .big { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 5vw, 3.4rem); line-height: 1; letter-spacing: -.03em; }
+.lead .big small { font-size: .45em; font-weight: 600; color: var(--ink-2); letter-spacing: 0; margin-left: 6px; }
+.lead p { color: var(--ink-2); font-size: .94rem; }
+.lead .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.lead .split div { display: grid; gap: 2px; }
+.lead .split b { font-family: var(--font-display); font-size: 1.35rem; letter-spacing: -.02em; }
+.lead .split span { font-size: .8rem; color: var(--muted); line-height: 1.3; }
+.controls { padding: 6px 20px 18px; display: grid; gap: 16px; }
+.field { display: grid; gap: 6px; }
+.field .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.field label, .field .lab { font-weight: 600; font-size: .92rem; }
+.field output { font-weight: 700; font-size: .95rem; }
+.field small { color: var(--muted); font-size: .8rem; line-height: 1.35; }
+input[type=range] { width: 100%; accent-color: var(--accent); margin: 4px 0; }
+input[type=number] { width: 100%; font: inherit; font-size: .95rem; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--bg); color: var(--ink); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.btn { font: inherit; font-size: .9rem; font-weight: 600; padding: 8px 14px; border-radius: 9px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.data-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: .86rem; color: var(--ink-2); }
+.msg.err { color: var(--danger); font-weight: 600; }
+details.fmt { font-size: .86rem; color: var(--ink-2); }
+details.fmt summary { cursor: pointer; font-weight: 600; }
+details.fmt code { display: block; margin: 8px 0; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; font-size: .78rem; overflow-x: auto; white-space: nowrap; }
+
+/* results */
+.stack { display: grid; gap: 20px; min-width: 0; align-content: start; }
+.results { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 20px; align-items: start; }
+.chartwrap { position: relative; }
+#chart { display: block; width: 100%; height: auto; touch-action: pan-y; }
+#chart text { fill: var(--muted); font: 500 12px var(--font-body); }
+#chart .axis { stroke: var(--line-2); stroke-width: 1; }
+#chart .gridl { stroke: var(--line); stroke-width: 1; }
+#chart .ln { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+#chart .l-roof { stroke: var(--accent); stroke-width: 2.6; }
+#chart .l-ward { stroke: var(--ink-2); stroke-width: 2; }
+#chart .l-rand { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; }
+#chart .pt-roof { fill: var(--accent); } #chart .pt-ward { fill: var(--ink-2); } #chart .pt-rand { fill: var(--muted); }
+#chart .pt { stroke: var(--surface); stroke-width: 2; }
+#chart .endl { font-weight: 700; font-size: 12.5px; }
+#chart .endl.roof { fill: var(--accent); }
+#chart .endl.ward { fill: var(--ink-2); }
+#chart .endl.rand { fill: var(--muted); }
+#chart .cur { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 3 3; }
+#chart .hov { stroke: var(--ink); stroke-width: 1; }
+#chart .curlab { fill: var(--ink-2); font-weight: 700; }
+.ctip { position: absolute; top: 8px; pointer-events: none; background: var(--ink); color: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: .8rem; min-width: 168px; z-index: 3; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+.ctip b { display: block; margin-bottom: 3px; }
+.ctip span { display: flex; justify-content: space-between; gap: 14px; }
+details.tbl { margin-top: 10px; font-size: .86rem; }
+details.tbl summary { cursor: pointer; font-weight: 600; color: var(--ink-2); }
+
+.mix { display: grid; gap: 14px; }
+.mix .item { display: grid; gap: 5px; }
+.mix .name { display: flex; justify-content: space-between; font-size: .9rem; font-weight: 600; }
+.mix .bar { display: grid; grid-template-columns: 1fr 44px; gap: 8px; align-items: center; font-size: .78rem; color: var(--muted); }
+.mix .track { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.mix .fill { height: 100%; border-radius: 4px; display: block; }
+.mix .fill.t { background: var(--accent); }
+.mix .fill.a { background: var(--muted); }
+.mix .keyrow { display: flex; gap: 16px; font-size: .8rem; color: var(--ink-2); }
+.mix .keyrow i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* tables */
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child, th.l, td.l { text-align: left; }
+th { font-weight: 600; color: var(--muted); font-size: .8rem; position: sticky; top: 0; background: var(--surface); }
+tbody tr:hover td { background: var(--bg); }
+.table-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.tscroll { max-height: 420px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: .76rem; font-weight: 700; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: .9rem; font-weight: 600; z-index: 20; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }
+
+/* method + limits */
+.sec-title { display: grid; gap: 6px; margin-block: 24px 0; }
+.sec-title h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); }
+.sec-title p { color: var(--ink-2); max-width: 62ch; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.step { padding: 20px; display: grid; gap: 10px; align-content: start; }
+.step h3 { font-size: 1.15rem; }
+.step p { color: var(--ink-2); font-size: .95rem; }
+.eq { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: .9rem; line-height: 1.8; overflow-x: auto; }
+.eq i { font-family: Georgia, "Times New Roman", serif; font-size: 1.02em; }
+.sanity { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px 40px; padding: 20px; align-items: start; }
+.sanity h3 { font-size: 1.15rem; margin-bottom: 6px; }
+.sanity p { color: var(--ink-2); font-size: .94rem; }
+.limits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; padding: 6px 20px 20px; margin: 0; list-style: none; }
+.limits li { padding: 12px 0; border-top: 1px solid var(--line); font-size: .95rem; color: var(--ink-2); }
+.limits b { color: var(--ink); display: block; margin-bottom: 2px; }
+.foot { display: flex; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 20px; color: var(--muted); font-size: .88rem; }
+
+@media (max-width: 1020px) {
+  .demo { grid-template-columns: minmax(0, 1fr); }
+  .stack, .panel { display: contents; }
+  .lead { order: 1; } .stage { order: 2; } .scenario { order: 3; } .chartcard { order: 4; }
+  .results { grid-template-columns: minmax(0, 1fr); }
+  .intro { grid-template-columns: minmax(0, 1fr); }
+  .steps { grid-template-columns: minmax(0, 1fr); }
+  .sanity { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .limits { grid-template-columns: minmax(0, 1fr); }
+  .nav { gap: 14px; }
+  .card-head { padding: 14px 16px 0; }
+  .card-body { padding: 12px 16px 16px; }
+  .lead, .controls, .step, .sanity { padding-inline: 16px; }
+  .limits { padding-inline: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* select */
+select { width: 100%; font: inherit; font-size: .95rem; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--bg); color: var(--ink); }
+.field .seg { justify-self: start; }
+
+/* what is built: two rows. Top row is the pipeline, bottom row feeds into it. */
+.flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px 28px; }
+.node { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.node b { font-family: var(--font-display); font-size: 1.05rem; letter-spacing: -.01em; }
+.node span { color: var(--ink-2); font-size: .9rem; }
+.node.dashed { border-style: dashed; border-color: var(--line-2); }
+.tag { justify-self: start; font-style: normal; font-size: .76rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.tag.todo { background: var(--warn-bg); color: var(--warn-ink); }
+.n-data { grid-column: 1; grid-row: 1; } .n-heat { grid-column: 2; grid-row: 1; } .n-opt { grid-column: 3; grid-row: 1; } .n-out { grid-column: 4; grid-row: 1; }
+.n-cls { grid-column: 1; grid-row: 2; } .n-wx { grid-column: 2; grid-row: 2; }
+.n-data::after, .n-heat::after, .n-opt::after { content: ""; position: absolute; right: -19px; top: 50%; width: 9px; height: 9px; border-top: 2px solid var(--line-2); border-right: 2px solid var(--line-2); transform: translateY(-50%) rotate(45deg); }
+.n-cls::after, .n-wx::after { content: ""; position: absolute; top: -17px; left: 50%; width: 9px; height: 9px; border-top: 2px solid var(--line-2); border-left: 2px solid var(--line-2); transform: translateX(-50%) rotate(45deg); }
+@media (max-width: 1020px) {
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .n-data, .n-heat, .n-opt, .n-out, .n-cls, .n-wx { grid-column: auto; grid-row: auto; }
+  .n-data::after, .n-heat::after, .n-opt::after, .n-cls::after, .n-wx::after { display: none; }
+}
+@media (max-width: 640px) { .flow { grid-template-columns: minmax(0, 1fr); } }
+
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 15.5 16 5l13 10.5" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 14v12h18V14" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="20" r="3" fill="var(--heat-3)"/></svg>
+      RoofRx
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#demo">Demo</a><a href="#method">Method</a><a href="#limits">Limits</a>
+    </nav>
+  </header>
+
+  <section class="intro">
+    <h1>Cool the right roofs first.</h1>
+    <div>
+      <p class="lede">RoofRx ranks individual rooftops for a cool-roof coating, so a limited budget reaches the homes that gain the most.</p>
+      <p class="lede">The demo runs a heat model for 1,200 synthetic homes in your browser. Change the budget and watch the selection move.</p>
+    </div>
+  </section>
+
+  <div class="notice" id="notice">Synthetic demo city and an idealised hot week. Indoor temperatures are modelled from assumed roof properties, not measured.</div>
+
+  <section id="demo" class="demo" aria-label="Live demo">
+    <div class="stack">
+    <div class="card stage">
+      <div class="card-head">
+        <h2>Treatment map</h2>
+        <div class="seg" role="radiogroup" aria-label="Map view">
+          <label><input type="radio" name="view" value="treated" checked><span>Treated roofs</span></label>
+          <label><input type="radio" name="view" value="heat"><span>Heat map</span></label>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="mapwrap" id="mapwrap">
+          <svg id="map" role="img" aria-label="Map of roofs"></svg>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <div class="card chartcard">
+      <div class="card-head">
+        <h2>Relief as the budget grows</h2>
+        <span class="hint">Click the chart to set the budget</span>
+      </div>
+      <div class="card-body">
+        <div class="chartwrap" id="chartwrap">
+          <svg id="chart" viewBox="0 0 640 300" role="img" aria-label="Line chart of modelled relief against budget for three targeting strategies"></svg>
+          <div class="ctip" id="ctip" hidden></div>
+        </div>
+        <p class="hint" id="chart-note" style="margin-top:8px"></p>
+        <details class="tbl">
+          <summary>View as table</summary>
+          <div class="scroll"><table id="chart-table"></table></div>
+        </details>
+      </div>
+    </div>
+    </div>
+
+    <aside class="panel" aria-label="Scenario">
+      <div class="card lead" aria-live="polite">
+        <p class="hint">Roof-level vs ward-level targeting, same budget</p>
+        <div class="big num" id="k-gain">&nbsp;</div>
+        <p id="k-gain-note"></p>
+        <div class="split">
+          <div><b class="num" id="k-roofs">0</b><span id="k-spent"></span></div>
+          <div><b class="num" id="k-hours">0 h</b><span id="k-hours-note"></span></div>
+        </div>
+      </div>
+
+      <div class="card scenario">
+        <div class="card-head"><h2>Scenario</h2></div>
+        <div class="controls">
+          <div class="field">
+            <div class="row"><label for="budget">Budget</label><output class="num" id="o-budget" for="budget"></output></div>
+            <input type="range" id="budget" min="50000" max="5000000" step="50000" value="1000000">
+          </div>
+          <div class="pair">
+            <div class="field">
+              <label for="cost">Coating, ₹ per m²</label>
+              <input type="number" id="cost" min="1" step="10" value="250">
+            </div>
+            <div class="field">
+              <label for="fixed">Fixed, ₹ per roof</label>
+              <input type="number" id="fixed" min="0" step="100" value="0">
+            </div>
+          </div>
+          <div class="field">
+            <div class="row"><label for="thr">Danger threshold, indoor</label><output class="num" id="o-thr" for="thr"></output></div>
+            <input type="range" id="thr" min="25" max="40" step="0.5" value="35">
+            <small>An assumption you can change. Heat-hours count the hours per day indoor air stays above it.</small>
+          </div>
+          <div class="field">
+            <span class="lab">Heat measure</span>
+            <div class="seg" role="radiogroup" aria-label="Heat measure">
+              <label><input type="radio" name="metric" value="degree" checked><span>Degree-hours</span></label>
+              <label><input type="radio" name="metric" value="hours"><span>Hours above</span></label>
+            </div>
+            <small id="metric-note"></small>
+          </div>
+          <div class="field">
+            <label for="wx">Weather</label>
+            <select id="wx">
+              <option value="synthetic">Idealised hot week (synthetic)</option>
+              
+            </select>
+            <span class="msg" id="wx-msg" role="status"></span>
+            <small>Real weather is available on the hosted copy of this page. This preview blocks network requests.</small>
+          </div>
+          <div class="field">
+            <span class="lab">Buildings</span>
+            <div class="data-row">
+              <button type="button" class="btn" id="btn-sample">Sample city</button>
+              <button type="button" class="btn" id="btn-upload">Upload CSV</button>
+              <input type="file" id="file" accept=".csv,text/csv" hidden>
+            </div>
+            <span class="msg" id="data-msg" role="status">Showing 1,200 synthetic buildings in 8 wards.</span>
+            <details class="fmt">
+              <summary>CSV format</summary>
+              <code id="csv-hdr">building_id,ward,lat,lon,area_m2,material,storeys,occupants</code>
+              <p>material is metal, concrete, tile or other. storeys and occupants are optional. Storeys defaults to 1. If occupants is present, it replaces roof area as the number of people each roof helps.</p>
+              <button type="button" class="btn" id="btn-copyhdr">Copy header</button>
+            </details>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="results" aria-label="Picks and work order">
+    <div class="card">
+      <div class="card-head"><h2>Who gets picked</h2></div>
+      <div class="card-body">
+        <div class="mix" id="mix"></div>
+      </div>
+    </div>
+
+    <div class="card" aria-label="Work order">
+    <div class="card-head">
+      <h2>Work order</h2>
+      <div class="table-actions">
+        <span class="hint" id="wo-count"></span>
+        <button type="button" class="btn" id="btn-all">Show all</button>
+        
+        <button type="button" class="btn primary" id="btn-copy">Copy CSV</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="tscroll"><table id="wo"></table></div>
+    </div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="sec-title">
+      <h2>How RoofRx decides</h2>
+      <p>Three steps, each simple enough to check by hand.</p>
+    </div>
+    <div class="steps" style="margin-top:16px">
+      <div class="card step">
+        <h3>Read each roof</h3>
+        <p>Every building needs a footprint area, a roof material and a ward. Material can come from a survey or from an image classifier trained on aerial crops. The classifier scripts are in the repository and have not been trained yet.</p>
+      </div>
+      <div class="card step">
+        <h3>Model the heat</h3>
+        <p>Sun on the roof raises its surface temperature. Heat flows into the home through the roof and out through walls and ventilation. Hourly steps give the hours per day indoor air stays above your threshold, before and after a coating.</p>
+        <div class="eq"><i>T</i><sub>sa</sub> = <i>T</i><sub>out</sub> + <i>α</i>·<i>I</i> / <i>h</i><sub>out</sub><br><i>C</i> d<i>T</i><sub>in</sub>/dt = <i>U</i>(<i>T</i><sub>sa</sub> − <i>T</i><sub>in</sub>) + <i>H</i>(<i>T</i><sub>out</sub> − <i>T</i><sub>in</sub>)</div>
+      </div>
+      <div class="card step">
+        <h3>Spend the budget</h3>
+        <p>Each roof gets a benefit (heat-hours avoided × area) and a cost (area × coating price). Roofs are taken in order of benefit per rupee until the money runs out. The ward-level baseline treats random roofs in the hottest wards first.</p>
+        <div class="eq">benefit = hours avoided × area<br>cost = area × price + fixed</div>
+      </div>
+    </div>
+
+    <div class="sec-title" style="margin-top:36px">
+      <h2>What is built</h2>
+      <p>Each part and where it stands.</p>
+    </div>
+    <div class="flow" style="margin-top:16px">
+      <div class="node n-data"><b>Building data</b><span>Footprint area, roof material, ward, storeys, optional occupants. CSV upload or the synthetic city.</span><i class="tag">Built and tested</i></div>
+      <div class="node n-heat"><b>Heat model</b><span>Sol-air temperature and a lumped indoor balance, hour by hour, before and after a coating.</span><i class="tag">Built, matches the Python model</i></div>
+      <div class="node n-opt"><b>Optimizer</b><span>Benefit per cost, greedy selection inside the budget, compared with ward-level and random targeting.</span><i class="tag">Built, matches the Python model</i></div>
+      <div class="node n-out"><b>Map and work order</b><span>Ranked roofs, relief chart and CSV export.</span><i class="tag">This page</i></div>
+      <div class="node n-cls dashed"><b>Roof classifier</b><span>Reads roof material from aerial image crops with a fine-tuned CNN.</span><i class="tag todo">Scripts written, not trained</i></div>
+      <div class="node n-wx"><b>Weather</b><span>Hourly temperature and sunshine from Open-Meteo, or the synthetic hot week.</span><i class="tag">Real data on the hosted copy</i></div>
+    </div>
+
+    <div class="card sanity" style="margin-top:20px">
+      <div>
+        <h3>Does the model behave?</h3>
+        <p>Cool-roof programmes commonly report indoor drops of a few degrees. This table is what the model produces from its assumed inputs, so it is a plausibility check and not a validation. Peak-hour drops are large, and real sensors may show less.</p>
+      </div>
+      <div class="scroll"><table id="sanity"></table></div>
+    </div>
+  </section>
+
+  <section id="limits">
+    <div class="sec-title">
+      <h2>What this is and is not</h2>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <ul class="limits">
+        <li><b>Modelled, not measured</b>Indoor temperatures come from a simple model. Validate it with indoor sensors before acting on it.</li>
+        <li><b>Assumed roof properties</b>Absorptance and heat-transfer values are placeholders until they are replaced with cited sources.</li>
+        <li><b>Synthetic city</b>The 1,200 buildings and the hot-week weather are generated. The size of the gain depends on how the wards were generated, so it is not a finding about any real city.</li>
+        <li><b>Area stands in for people</b>Larger roofs count as more occupants. Real population data would change the ranking.</li>
+        <li><b>Real weather, synthetic homes</b>The weather picker loads real hourly data. The buildings stay synthetic until you upload your own CSV.</li>
+        <li><b>A week is a snapshot</b>Seven days of weather is not a hot-season average. Results can change a lot with the week you load.</li>
+        <li><b>Greedy selection</b>Taking roofs by benefit per rupee is a standard heuristic and is not guaranteed optimal.</li>
+        <li><b>Our own baseline</b>The ward-level comparison is a simple version we built. It is not a reimplementation of any city tool.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>RoofRx · ForgeHacks Online 2026 · AI + Climate</span>
+    <span>The browser model is checked against the Python model on the same data.</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+window.ROOFRX_DATA = {"wards":["W1","W2","W3","W4","W5","W6","W7","W8"],"materials":["metal","concrete","tile","other"],"rows":[[0,0,11.33639,77.71249,30.357,1,2],[1,0,11.34001,77.72395,25.946,1,1],[2,0,11.34135,77.71129,23.117,1,1],[3,0,11.33472,77.7145,32.58,1,1],[4,0,11.34291,77.71183,33.017,3,2],[5,0,11.33323,77.72484,64.135,1,2],[6,0,11.3389,77.7245,84.56,0,1],[7,0,11.34293,77.7085,34.93,0,2],[8,0,11.34315,77.71833,47.874,0,2],[9,0,11.33816,77.70874,76.559,1,2],[10,0,11.33923,77.72525,63.403,1,2],[11,0,11.34109,77.71986,54.989,3,2],[12,0,11.34422,77.72669,19.32,3,2],[13,0,11.34108,77.72777,38.099,1,2],[14,0,11.33423,77.70809,46.481,0,1],[15,0,11.33625,77.72589,30.754,2,1],[16,0,11.33637,77.71725,55.673,3,1],[17,0,11.33273,77.70734,43.884,3,2],[18,0,11.33434,77.72099,19.671,0,1],[19,0,11.32728,77.71807,26.94,0,1],[20,0,11.34199,77.71992,24.88,2,2],[21,0,11.34584,77.72274,49.887,1,2],[22,0,11.33222,77.71494,24.756,0,2],[23,0,11.34233,77.71234,22.02,1,2],[24,0,11.34293,77.72369,34.782,3,2],[25,0,11.34768,77.70156,60.841,0,2],[26,0,11.34301,77.71805,40.41,1,1],[27,0,11.34013,77.71093,56.907,1,2],[28,0,11.33568,77.71269,34.819,2,2],[29,0,11.34014,77.70864,12.0,3,1],[30,0,11.3376,77.71434,79.262,3,2],[31,0,11.33186,77.72564,52.89,0,1],[32,0,11.34628,77.71798,46.122,3,1],[33,0,11.34695,77.70414,31.418,1,1],[34,0,11.34446,77.71455,28.753,1,1],[35,0,11.34912,77.71786,28.273,0,1],[36,0,11.3473,77.71545,30.813,3,1],[37,0,11.33727,77.71292,45.568,0,1],[38,0,11.33115,77.72013,50.305,1,1],[39,0,11.33792,77.71673,19.563,1,2],[40,0,11.3416,77.72962,24.56,3,1],[41,0,11.34418,77.71571,27.189,0,1],[42,0,11.34032,77.70365,26.14,1,2],[43,0,11.34894,77.72177,32.681,1,2],[44,0,11.33658,77.70692,60.179,1,1],[45,0,11.33369,77.70514,22.683,1,1],[46,0,11.34856,77.71368,51.414,0,1],[47,0,11.34198,77.71346,110.381,1,2],[48,0,11.34199,77.71552,56.554,1,1],[49,0,11.3459,77.71175,37.668,0,2],[50,0,11.33656,77.71304,21.665,1,2],[51,0,11.34539,77.71209,32.193,1,1],[52,0,11.35732,77.722,24.624,3,1],[53,0,11.34065,77.71596,25.038,1,1],[54,0,11.34349,77.71351,31.692,1,2],[55,0,11.34148,77.70933,22.29,1,2],[56,0,11.33376,77.70715,46.678,1,1],[57,0,11.34416,77.714,40.082,1,1],[58,0,11.348,77.71958,44.997,3,2],[59,0,11.3435,77.71732,34.602,1,1],[60,0,11.34111,77.71823,31.082,0,1],[61,0,11.33415,77.72194,37.899,0,1],[62,0,11.33526,77.7198,40.932,1,2],[63,0,11.34259,77.7215,33.252,0,2],[64,0,11.34119,77.71401,39.952,0,1],[65,0,11.3394,77.71791,30.03,1,1],[66,0,11.34792,77.70553,21.926,1,1],[67,0,11.34245,77.71427,18.431,1,2],[68,0,11.3431,77.7259,46.308,1,2],[69,0,11.33841,77.71048,67.967,0,2],[70,0,11.34209,77.72082,54.727,3,2],[71,0,11.34646,77.71348,24.214,1,1],[72,0,11.33689,77.71116,50.421,1,2],[73,0,11.34519,77.72396,21.388,0,1],[74,0,11.34509,77.71711,59.053,2,1],[75,0,11.33558,77.71649,24.462,3,1],[76,0,11.33706,77.70973,41.294,1,2],[77,0,11.33954,77.71227,44.452,0,2],[78,0,11.33421,77.71793,42.74,0,1],[79,0,11.33215,77.72847,19.133,1,1],[80,0,11.34769,77.71345,37.586,1,2],[81,0,11.33885,77.69795,24.862,0,1],[82,0,11.3454,77.72185,32.748,0,1],[83,0,11.33827,77.72406,56.981,1,1],[84,0,11.33869,77.70893,32.629,0,1],[85,0,11.35249,77.71037,53.777,1,1],[86,0,11.34726,77.70676,64.474,0,2],[87,0,11.34528,77.72211,49.489,1,1],[88,0,11.34848,77.71251,36.719,0,1],[89,0,11.34259,77.71831,51.175,1,1],[90,0,11.33581,77.7104,59.32,1,1],[91,0,11.333,77.70413,21.829,0,2],[92,0,11.34277,77.71094,32.999,1,2],[93,0,11.32574,77.71061,32.13,1,1],[94,0,11.34919,77.71339,31.238,1,1],[95,0,11.3343,77.71853,44.77,1,1],[96,0,11.34135,77.71152,20.615,1,1],[97,0,11.34891,77.71577,24.523,0,2],[98,0,11.33672,77.72261,14.963,3,1],[99,0,11.33275,77.71792,62.624,1,2],[100,0,11.33641,77.72315,40.029,1,2],[101,0,11.34511,77.7115,30.712,0,2],[102,0,11.33998,77.72354,22.643,1,2],[103,0,11.3305,77.71491,40.836,0,2],[104,0,11.33936,77.72019,27.806,2,2],[105,0,11.34017,77.72445,46.394,0,2],[106,0,11.35167,77.72063,31.939,1,2],[107,0,11.33392,77.70546,30.868,0,1],[108,0,11.34248,77.72059,20.16,1,1],[109,0,11.34595,77.71645,50.259,0,1],[110,0,11.34327,77.70826,37.877,1,2],[111,0,11.33886,77.70433,53.873,1,1],[112,0,11.33852,77.71658,68.986,1,1],[113,0,11.34902,77.71896,56.611,1,1],[114,0,11.34043,77.7222,22.281,3,2],[115,0,11.3396,77.7136,36.243,1,1],[116,0,11.33329,77.71485,40.914,0,1],[117,0,11.33557,77.71831,22.013,1,2],[118,0,11.33745,77.71597,19.923,1,2],[119,0,11.33456,77.70664,17.302,1,1],[120,0,11.33259,77.71437,97.536,1,2],[121,0,11.34206,77.72045,19.124,1,1],[122,0,11.34067,77.7146,25.938,0,2],[123,0,11.32625,77.70859,43.354,1,2],[124,0,11.34136,77.72111,52.664,2,2],[125,0,11.34097,77.70518,30.307,0,2],[126,0,11.34097,77.72319,41.183,2,2],[127,0,11.35118,77.71666,60.863,0,2],[128,0,11.34267,77.71212,27.043,1,2],[129,0,11.34141,77.70817,33.351,0,2],[130,0,11.33753,77.72394,44.754,3,2],[131,0,11.34527,77.71164,25.82,0,1],[132,0,11.34538,77.7301,16.388,1,2],[133,0,11.33991,77.72272,22.216,2,1],[134,0,11.34162,77.71774,20.213,1,1],[135,0,11.34254,77.71639,34.313,1,1],[136,0,11.33479,77.72358,37.466,1,2],[137,0,11.34904,77.71783,43.463,0,1],[138,0,11.32959,77.70931,72.9,2,1],[139,0,11.33897,77.72197,32.446,3,1],[140,0,11.34364,77.70066,30.399,1,2],[141,0,11.34169,77.71194,33.223,1,2],[142,0,11.33855,77.72327,22.86,1,1],[143,0,11.34403,77.72072,44.798,0,1],[144,0,11.34284,77.7186,31.033,0,2],[145,0,11.33201,77.72085,80.493,2,2],[146,0,11.33667,77.71347,35.734,2,2],[147,0,11.33199,77.71234,20.524,1,1],[148,0,11.3481,77.71881,14.768,3,2],[149,0,11.33664,77.70707,49.147,1,2],[150,1,11.34317,77.73551,24.911,1,2],[151,1,11.34524,77.72253,55.089,1,1],[152,1,11.34674,77.74007,21.889,3,1],[153,1,11.33272,77.72977,66.334,2,2],[154,1,11.34274,77.73312,25.655,1,2],[155,1,11.34924,77.73036,38.978,1,2],[156,1,11.3401,77.73047,19.578,3,1],[157,1,11.3469,77.73652,42.141,1,2],[158,1,11.34257,77.73667,25.475,1,1],[159,1,11.34407,77.74698,26.332,0,1],[160,1,11.34452,77.73172,57.81,2,2],[161,1,11.33552,77.73373,23.422,0,1],[162,1,11.34239,77.73659,34.36,1,1],[163,1,11.34837,77.73128,35.014,1,2],[164,1,11.34273,77.7366,22.407,1,2],[165,1,11.34621,77.73608,35.633,1,1],[166,1,11.34727,77.74186,95.361,2,2],[167,1,11.34237,77.73906,41.254,3,1],[168,1,11.34129,77.73694,44.533,1,1],[169,1,11.33228,77.73379,36.445,1,1],[170,1,11.35021,77.74255,34.233,0,2],[171,1,11.34098,77.73534,17.247,0,2],[172,1,11.34198,77.73517,47.359,1,1],[173,1,11.34637,77.73528,38.581,1,2],[174,1,11.34462,77.73552,47.57,1,1],[175,1,11.34221,77.72939,22.706,1,2],[176,1,11.35113,77.73336,49.886,0,2],[177,1,11.35115,77.74019,15.911,2,1],[178,1,11.34205,77.7407,30.582,1,2],[179,1,11.33366,77.73386,39.737,0,2],[180,1,11.34792,77.7386,23.129,2,2],[181,1,11.33583,77.72991,39.824,1,1],[182,1,11.33624,77.73559,21.947,1,2],[183,1,11.33482,77.74071,107.173,0,1],[184,1,11.34149,77.72736,29.53,2,1],[185,1,11.33693,77.73849,58.894,2,1],[186,1,11.33793,77.73702,12.0,1,1],[187,1,11.34036,77.72719,31.339,3,1],[188,1,11.33761,77.735,31.517,2,2],[189,1,11.34107,77.74125,29.743,0,1],[190,1,11.34514,77.73507,20.769,1,2],[191,1,11.33786,77.72517,24.759,1,2],[192,1,11.34266,77.7372,52.395,1,2],[193,1,11.33469,77.72075,33.543,1,2],[194,1,11.34475,77.73209,41.953,1,2],[195,1,11.33266,77.73406,32.736,0,1],[196,1,11.33987,77.74504,25.956,0,1],[197,1,11.34494,77.73785,39.45,0,2],[198,1,11.33738,77.73788,27.4,3,2],[199,1,11.3429,77.73649,26.096,1,1],[200,1,11.34955,77.73894,45.58,0,2],[201,1,11.34618,77.73024,30.111,1,2],[202,1,11.33842,77.73613,58.889,0,1],[203,1,11.34127,77.73141,37.387,3,2],[204,1,11.3454,77.73774,20.016,3,2],[205,1,11.33796,77.73318,49.511,1,1],[206,1,11.34941,77.73675,82.559,2,2],[207,1,11.36036,77.73566,22.806,1,2],[208,1,11.33613,77.73125,42.852,1,1],[209,1,11.34789,77.73317,16.835,2,2],[210,1,11.33998,77.73446,36.334,1,1],[211,1,11.34346,77.73618,36.5,3,2],[212,1,11.33469,77.7237,65.167,0,2],[213,1,11.33848,77.73262,43.51,1,2],[214,1,11.3454,77.74368,30.086,3,1],[215,1,11.35264,77.74021,42.84,1,2],[216,1,11.33852,77.74224,45.889,1,1],[217,1,11.34604,77.74232,38.621,1,2],[218,1,11.34502,77.73997,54.65,3,1],[219,1,11.34538,77.73794,20.181,0,1],[220,1,11.33697,77.7406,33.451,2,1],[221,1,11.35032,77.73756,59.729,1,2],[222,1,11.34025,77.73688,50.803,1,2],[223,1,11.34927,77.73541,50.512,1,1],[224,1,11.33834,77.73747,30.607,1,2],[225,1,11.3422,77.72625,51.926,3,2],[226,1,11.33484,77.73281,53.612,3,1],[227,1,11.3485,77.73045,26.567,0,2],[228,1,11.33958,77.72162,47.342,1,2],[229,1,11.34672,77.73661,39.679,1,1],[230,1,11.3474,77.7408,49.305,0,1],[231,1,11.33975,77.74749,21.265,0,2],[232,1,11.3425,77.74319,62.762,1,1],[233,1,11.3398,77.73308,53.738,0,2],[234,1,11.34292,77.73773,69.105,0,2],[235,1,11.33466,77.73175,17.203,0,2],[236,1,11.34754,77.73854,39.47,1,1],[237,1,11.34494,77.74478,29.71,1,2],[238,1,11.33551,77.7275,25.766,3,1],[239,1,11.33689,77.73304,28.156,0,1],[240,1,11.33778,77.73557,43.218,1,2],[241,1,11.34037,77.72652,24.435,0,2],[242,1,11.34463,77.73316,26.934,1,2],[243,1,11.35134,77.73106,58.217,3,1],[244,1,11.34259,77.74595,49.674,1,1],[245,1,11.3353,77.73793,15.618,0,1],[246,1,11.34299,77.73451,33.371,1,1],[247,1,11.33846,77.7467,33.629,1,1],[248,1,11.33749,77.74151,24.763,1,1],[249,1,11.33614,77.72818,44.729,1,1],[250,1,11.34092,77.72862,21.169,0,2],[251,1,11.33744,77.73987,69.34,2,1],[252,1,11.35498,77.74036,50.47,0,2],[253,1,11.34998,77.74062,34.198,1,2],[254,1,11.34405,77.73254,32.984,1,2],[255,1,11.34743,77.75023,59.125,0,2],[256,1,11.35709,77.73272,34.312,1,2],[257,1,11.34279,77.73815,16.769,0,2],[258,1,11.34308,77.73476,37.483,1,1],[259,1,11.34497,77.73671,32.395,0,2],[260,1,11.34236,77.73012,36.4,0,1],[261,1,11.3503,77.74067,72.629,1,2],[262,1,11.34536,77.72508,40.425,0,2],[263,1,11.34053,77.74244,20.043,1,1],[264,1,11.34175,77.73584,50.847,3,1],[265,1,11.33824,77.7321,60.624,2,1],[266,1,11.34939,77.73895,19.707,1,1],[267,1,11.34301,77.72438,55.999,0,2],[268,1,11.33701,77.73931,13.443,3,2],[269,1,11.34558,77.74367,62.58,3,1],[270,1,11.34251,77.73509,41.31,3,2],[271,1,11.35585,77.74066,29.382,3,2],[272,1,11.34481,77.73778,12.471,1,1],[273,1,11.34186,77.73585,19.636,1,1],[274,1,11.34205,77.73356,26.626,2,1],[275,1,11.34819,77.73736,83.076,1,2],[276,1,11.33387,77.74527,67.455,3,1],[277,1,11.33831,77.73204,16.965,1,2],[278,1,11.34608,77.74541,47.287,1,1],[279,1,11.33673,77.73649,20.339,2,2],[280,1,11.34949,77.74904,21.478,0,2],[281,1,11.34628,77.74019,41.2,1,2],[282,1,11.34847,77.73361,85.244,1,1],[283,1,11.3449,77.73515,18.918,0,1],[284,1,11.35269,77.74871,27.118,2,1],[285,1,11.34482,77.7443,51.356,1,1],[286,1,11.33637,77.73631,40.487,3,1],[287,1,11.34899,77.72228,52.557,1,2],[288,1,11.34514,77.74048,27.438,3,1],[289,1,11.34969,77.73471,12.0,2,1],[290,1,11.33786,77.74397,24.977,1,1],[291,1,11.34507,77.7375,36.67,0,1],[292,1,11.34182,77.73309,31.054,1,1],[293,1,11.3365,77.73344,36.319,3,1],[294,1,11.34201,77.7399,50.494,1,1],[295,1,11.34038,77.74093,44.136,1,2],[296,1,11.338,77.74403,18.983,3,2],[297,1,11.33428,77.73432,60.162,1,2],[298,1,11.34138,77.73179,19.937,2,2],[299,1,11.33981,77.73984,29.406,0,2],[300,2,11.34011,77.76531,59.931,2,2],[301,2,11.3386,77.76983,17.753,2,2],[302,2,11.34053,77.75576,38.867,2,1],[303,2,11.34287,77.76368,53.566,0,2],[304,2,11.3464,77.76211,38.897,0,1],[305,2,11.33603,77.75182,20.826,0,1],[306,2,11.33977,77.75807,55.664,2,1],[307,2,11.34846,77.76587,42.079,0,1],[308,2,11.33115,77.76507,43.993,0,1],[309,2,11.34241,77.76477,20.832,0,1],[310,2,11.34149,77.76017,71.596,2,1],[311,2,11.34348,77.77338,18.622,0,2],[312,2,11.3491,77.75426,73.805,0,2],[313,2,11.3438,77.74985,37.99,0,2],[314,2,11.3424,77.75733,53.689,0,2],[315,2,11.33482,77.75154,30.355,0,2],[316,2,11.34322,77.75147,101.644,1,2],[317,2,11.33597,77.75578,112.753,0,1],[318,2,11.33915,77.7543,92.558,0,1],[319,2,11.3478,77.75311,14.904,2,2],[320,2,11.34251,77.7612,32.146,2,2],[321,2,11.34579,77.76146,26.515,0,1],[322,2,11.33669,77.75572,60.84,0,1],[323,2,11.32871,77.76271,23.31,0,2],[324,2,11.35456,77.75986,52.543,0,2],[325,2,11.34199,77.76075,48.399,0,2],[326,2,11.33158,77.7625,48.182,2,2],[327,2,11.33681,77.74781,38.281,0,1],[328,2,11.33264,77.75799,64.673,0,2],[329,2,11.33644,77.74727,17.456,0,2],[330,2,11.34272,77.75761,17.477,0,1],[331,2,11.33623,77.76701,18.153,2,2],[332,2,11.34252,77.76052,29.98,2,1],[333,2,11.35031,77.7515,15.278,2,2],[334,2,11.33342,77.75467,28.187,2,2],[335,2,11.33471,77.76016,48.103,2,2],[336,2,11.35126,77.76575,12.0,0,1],[337,2,11.33704,77.76381,31.971,2,1],[338,2,11.33216,77.75862,44.804,0,1],[339,2,11.34104,77.76403,41.104,0,2],[340,2,11.34199,77.75174,30.455,0,2],[341,2,11.34572,77.76121,21.487,2,2],[342,2,11.34366,77.75694,59.175,0,2],[343,2,11.33835,77.76055,48.575,1,2],[344,2,11.34208,77.75903,50.665,2,2],[345,2,11.33006,77.76189,39.277,0,2],[346,2,11.35058,77.76457,35.403,0,1],[347,2,11.34425,77.76854,20.598,0,1],[348,2,11.34614,77.75423,41.722,0,1],[349,2,11.33981,77.75525,31.397,0,2],[350,2,11.334,77.75947,27.152,0,2],[351,2,11.33779,77.7612,34.379,0,2],[352,2,11.34732,77.76707,32.574,0,2],[353,2,11.32778,77.75213,23.85,0,2],[354,2,11.32989,77.76776,56.483,0,2],[355,2,11.34264,77.7535,70.299,0,1],[356,2,11.34972,77.77412,33.585,2,1],[357,2,11.35144,77.76103,14.993,2,2],[358,2,11.33905,77.75584,48.614,0,2],[359,2,11.34854,77.76634,49.283,0,1],[360,2,11.33449,77.76409,46.833,0,2],[361,2,11.33785,77.76257,22.429,0,2],[362,2,11.33712,77.7709,58.305,0,2],[363,2,11.33284,77.75499,44.862,0,2],[364,2,11.34208,77.75564,53.29,0,1],[365,2,11.34425,77.76012,39.716,0,2],[366,2,11.34964,77.75292,23.655,0,2],[367,2,11.3364,77.75524,32.588,0,2],[368,2,11.33419,77.76136,69.692,0,2],[369,2,11.33684,77.75945,26.429,0,1],[370,2,11.35101,77.74703,34.36,0,1],[371,2,11.33653,77.75238,30.034,0,2],[372,2,11.34391,77.74483,59.424,0,1],[373,2,11.33757,77.75442,46.929,0,2],[374,2,11.34066,77.75092,34.797,2,1],[375,2,11.34119,77.75819,30.35,1,1],[376,2,11.34023,77.75689,39.522,0,1],[377,2,11.34496,77.75082,36.86,0,1],[378,2,11.33581,77.76573,14.747,1,2],[379,2,11.34106,77.75728,18.584,0,1],[380,2,11.33779,77.76231,32.733,1,2],[381,2,11.33957,77.76994,30.743,0,2],[382,2,11.34283,77.74699,38.726,2,2],[383,2,11.33552,77.76114,21.207,2,2],[384,2,11.34361,77.755,19.442,0,1],[385,2,11.34624,77.7652,49.937,0,2],[386,2,11.34878,77.75397,41.231,0,2],[387,2,11.33847,77.75225,49.557,0,2],[388,2,11.3504,77.75291,26.053,0,2],[389,2,11.33016,77.76669,31.37,0,2],[390,2,11.34031,77.76801,38.518,2,1],[391,2,11.34438,77.7597,31.173,0,1],[392,2,11.33471,77.74769,43.841,2,1],[393,2,11.34033,77.76731,76.568,0,2],[394,2,11.34568,77.75585,14.11,0,2],[395,2,11.34369,77.75617,23.793,0,2],[396,2,11.34045,77.74973,34.763,0,2],[397,2,11.35393,77.75947,29.987,1,1],[398,2,11.34921,77.76427,27.549,0,2],[399,2,11.34356,77.75113,39.477,0,2],[400,2,11.33764,77.76488,84.191,0,1],[401,2,11.33636,77.7618,83.127,0,2],[402,2,11.34206,77.76826,33.042,0,2],[403,2,11.33422,77.76399,33.047,0,2],[404,2,11.3379,77.7603,40.197,0,2],[405,2,11.34309,77.76715,23.323,0,2],[406,2,11.34739,77.7588,36.6,1,2],[407,2,11.33925,77.76329,33.432,0,1],[408,2,11.34152,77.75901,17.952,0,2],[409,2,11.33201,77.75188,67.806,0,1],[410,2,11.3328,77.76655,52.907,0,1],[411,2,11.33823,77.75748,25.841,1,2],[412,2,11.34665,77.77148,48.114,0,2],[413,2,11.33193,77.75921,17.72,2,2],[414,2,11.35182,77.76555,27.299,0,2],[415,2,11.34741,77.75726,17.971,0,2],[416,2,11.35083,77.75634,40.205,0,1],[417,2,11.33798,77.75675,41.979,0,2],[418,2,11.34312,77.75533,20.142,2,2],[419,2,11.34988,77.75814,56.727,0,1],[420,2,11.33363,77.75754,49.498,0,2],[421,2,11.34686,77.75461,39.567,1,2],[422,2,11.33888,77.76395,46.284,2,2],[423,2,11.33533,77.75222,26.751,3,2],[424,2,11.35029,77.76039,22.549,2,1],[425,2,11.34225,77.75303,62.317,0,1],[426,2,11.34672,77.75469,34.978,0,2],[427,2,11.34294,77.75632,22.375,0,1],[428,2,11.33461,77.77057,25.728,2,1],[429,2,11.34368,77.76648,42.693,2,1],[430,2,11.33841,77.77145,31.571,1,2],[431,2,11.33745,77.75022,20.938,0,2],[432,2,11.34072,77.75205,23.302,0,2],[433,2,11.33743,77.75248,19.861,0,2],[434,2,11.33925,77.75557,48.229,2,2],[435,2,11.342,77.75704,28.189,0,1],[436,2,11.35416,77.75175,35.069,0,2],[437,2,11.35713,77.7568,23.586,0,1],[438,2,11.35322,77.76354,25.904,0,1],[439,2,11.34418,77.75238,14.724,0,2],[440,2,11.34026,77.74817,27.316,0,2],[441,2,11.33599,77.75584,33.696,0,2],[442,2,11.34893,77.77359,51.353,2,2],[443,2,11.33681,77.75423,23.648,2,1],[444,2,11.35452,77.76713,47.909,0,1],[445,2,11.34444,77.75845,80.934,1,1],[446,2,11.34346,77.77122,15.481,0,2],[447,2,11.3371,77.77154,24.183,2,2],[448,2,11.34394,77.75297,16.989,0,1],[449,2,11.33567,77.75255,21.869,0,2],[450,3,11.33946,77.78139,18.483,3,2],[451,3,11.3393,77.77694,19.988,0,1],[452,3,11.33929,77.78437,60.28,1,2],[453,3,11.33696,77.7753,52.269,2,1],[454,3,11.34217,77.78131,46.609,2,2],[455,3,11.34434,77.77529,31.022,0,2],[456,3,11.34425,77.77013,17.655,2,2],[457,3,11.34204,77.77977,55.129,0,1],[458,3,11.34035,77.77958,22.844,1,2],[459,3,11.33911,77.78238,30.92,2,2],[460,3,11.33248,77.78929,16.179,0,1],[461,3,11.32706,77.78692,62.376,0,2],[462,3,11.33671,77.77848,37.719,2,2],[463,3,11.34116,77.77504,39.987,1,2],[464,3,11.33586,77.77876,71.926,3,2],[465,3,11.34841,77.77993,26.117,1,2],[466,3,11.34447,77.78245,46.442,1,2],[467,3,11.33172,77.77988,12.0,0,1],[468,3,11.34264,77.77699,56.366,2,2],[469,3,11.333,77.78194,102.107,2,2],[470,3,11.34883,77.78124,30.636,3,2],[471,3,11.33493,77.77416,51.43,0,2],[472,3,11.34277,77.77449,69.491,2,1],[473,3,11.33415,77.76977,46.317,3,1],[474,3,11.3445,77.78337,26.462,0,2],[475,3,11.32926,77.77211,29.396,2,1],[476,3,11.33797,77.78647,46.412,1,1],[477,3,11.34024,77.77089,19.185,0,2],[478,3,11.33324,77.78063,60.715,0,1],[479,3,11.33556,77.77405,85.071,0,1],[480,3,11.33616,77.77751,56.047,0,2],[481,3,11.34558,77.77357,41.075,1,1],[482,3,11.34007,77.78717,23.956,2,2],[483,3,11.33214,77.7806,23.939,2,2],[484,3,11.33758,77.77842,36.657,0,2],[485,3,11.3354,77.77518,44.368,0,2],[486,3,11.3389,77.78023,29.359,2,2],[487,3,11.32768,77.78382,39.486,2,1],[488,3,11.34291,77.77442,57.587,1,2],[489,3,11.33523,77.77483,24.173,0,2],[490,3,11.34077,77.78468,20.576,0,1],[491,3,11.33954,77.77102,34.688,0,2],[492,3,11.3428,77.77946,37.8,0,1],[493,3,11.33349,77.77511,68.102,0,2],[494,3,11.33535,77.7738,46.695,0,2],[495,3,11.35035,77.77228,30.834,0,2],[496,3,11.33037,77.78581,18.537,2,1],[497,3,11.33138,77.77724,31.183,1,1],[498,3,11.33039,77.77488,62.388,0,2],[499,3,11.34535,77.77253,18.946,3,2],[500,3,11.3416,77.77622,73.927,1,1],[501,3,11.3375,77.77688,54.869,0,2],[502,3,11.33443,77.78597,29.912,3,1],[503,3,11.34464,77.77462,33.909,1,1],[504,3,11.32695,77.77347,21.493,1,1],[505,3,11.34147,77.79309,62.187,3,2],[506,3,11.34045,77.77776,38.494,1,2],[507,3,11.33674,77.7849,67.496,2,1],[508,3,11.3484,77.78692,49.089,2,2],[509,3,11.34646,77.78167,37.013,3,2],[510,3,11.3378,77.78936,28.155,2,1],[511,3,11.335,77.77673,31.803,0,2],[512,3,11.3408,77.78527,45.88,0,1],[513,3,11.34003,77.77426,56.845,2,2],[514,3,11.33558,77.77097,27.356,0,1],[515,3,11.34196,77.78303,52.266,1,1],[516,3,11.33073,77.77891,27.626,1,1],[517,3,11.32686,77.78231,78.436,2,2],[518,3,11.32745,77.77668,67.24,0,1],[519,3,11.32495,77.78589,42.125,0,2],[520,3,11.33566,77.77617,91.027,0,2],[521,3,11.34019,77.77876,35.099,0,2],[522,3,11.33739,77.77416,24.053,1,2],[523,3,11.3413,77.77839,73.724,1,2],[524,3,11.33561,77.77714,29.899,1,2],[525,3,11.33793,77.77897,20.473,1,2],[526,3,11.33634,77.77938,64.457,3,1],[527,3,11.34472,77.77556,35.918,3,1],[528,3,11.32875,77.77325,46.909,3,2],[529,3,11.34592,77.77535,25.243,0,2],[530,3,11.34175,77.77293,38.399,1,1],[531,3,11.34899,77.77237,36.653,2,2],[532,3,11.33939,77.77914,22.08,1,1],[533,3,11.33583,77.78708,50.125,0,1],[534,3,11.33484,77.7762,52.63,0,2],[535,3,11.33858,77.76727,24.613,0,1],[536,3,11.34672,77.79209,45.706,3,2],[537,3,11.34137,77.77456,52.031,2,1],[538,3,11.33919,77.78229,29.654,0,2],[539,3,11.3406,77.7753,27.661,2,2],[540,3,11.32837,77.78181,23.115,2,1],[541,3,11.33557,77.77201,60.345,0,2],[542,3,11.34173,77.77419,43.144,0,2],[543,3,11.34179,77.76011,44.771,3,2],[544,3,11.34097,77.77449,58.284,0,1],[545,3,11.33713,77.77818,27.209,1,2],[546,3,11.33952,77.78194,26.772,2,1],[547,3,11.33707,77.77509,34.24,3,1],[548,3,11.33805,77.7769,36.723,0,1],[549,3,11.34394,77.78128,26.673,1,2],[550,3,11.34596,77.78537,18.16,1,1],[551,3,11.34739,77.77441,33.805,2,2],[552,3,11.34546,77.77525,45.68,2,1],[553,3,11.34517,77.77905,19.663,2,2],[554,3,11.34423,77.77976,22.539,0,1],[555,3,11.34047,77.77575,55.14,2,1],[556,3,11.33464,77.77341,30.999,0,2],[557,3,11.33915,77.77544,17.353,1,2],[558,3,11.34125,77.77178,69.182,3,2],[559,3,11.34093,77.78623,32.326,1,1],[560,3,11.32864,77.78091,80.373,0,2],[561,3,11.33745,77.77763,38.154,2,2],[562,3,11.33186,77.77766,22.973,2,2],[563,3,11.33377,77.78087,40.173,1,1],[564,3,11.32795,77.77726,19.371,2,2],[565,3,11.34288,77.78176,68.32,1,2],[566,3,11.34562,77.79073,19.946,2,1],[567,3,11.33052,77.78246,48.57,2,2],[568,3,11.34073,77.77522,38.799,0,1],[569,3,11.3456,77.76719,64.436,0,2],[570,3,11.34246,77.7723,19.878,1,2],[571,3,11.32794,77.77193,16.349,2,1],[572,3,11.33093,77.78004,36.707,0,2],[573,3,11.33291,77.77529,26.667,1,1],[574,3,11.34244,77.77514,63.727,1,1],[575,3,11.3335,77.78218,48.956,1,1],[576,3,11.3377,77.77671,45.71,2,2],[577,3,11.34192,77.76726,50.047,1,2],[578,3,11.34229,77.77516,43.188,1,2],[579,3,11.3363,77.783,40.176,0,1],[580,3,11.33543,77.77183,22.103,0,1],[581,3,11.3353,77.77277,36.028,2,2],[582,3,11.3456,77.77229,31.272,2,2],[583,3,11.33169,77.77853,39.407,2,2],[584,3,11.34071,77.78424,35.688,2,2],[585,3,11.33625,77.78095,54.776,0,1],[586,3,11.34259,77.77648,54.508,1,2],[587,3,11.33757,77.78143,72.213,0,1],[588,3,11.34299,77.77911,23.688,0,2],[589,3,11.34909,77.78165,41.395,0,2],[590,3,11.33488,77.78127,55.478,2,2],[591,3,11.32755,77.7812,66.54,2,1],[592,3,11.3549,77.77847,65.232,1,2],[593,3,11.32967,77.78415,16.6,2,1],[594,3,11.33651,77.77652,20.031,3,2],[595,3,11.32725,77.77876,45.971,0,2],[596,3,11.34579,77.77998,68.572,0,2],[597,3,11.34244,77.77483,38.034,0,2],[598,3,11.3372,77.78557,94.591,0,1],[599,3,11.33794,77.78041,94.893,0,2],[600,4,11.36177,77.71227,32.487,0,1],[601,4,11.36169,77.72185,17.925,0,1],[602,4,11.37104,77.71996,33.437,2,1],[603,4,11.35985,77.71789,37.187,3,1],[604,4,11.35519,77.71548,51.338,0,2],[605,4,11.35857,77.72001,20.839,2,1],[606,4,11.37426,77.72084,72.498,1,1],[607,4,11.35854,77.70919,51.238,2,1],[608,4,11.36372,77.72032,31.805,0,1],[609,4,11.3646,77.72845,34.45,1,2],[610,4,11.36256,77.72571,20.996,0,1],[611,4,11.36299,77.70958,54.795,0,1],[612,4,11.3559,77.71805,14.118,0,1],[613,4,11.36667,77.70333,76.268,1,2],[614,4,11.36948,77.71791,12.0,1,1],[615,4,11.37021,77.71082,58.27,2,1],[616,4,11.35993,77.72586,16.231,1,1],[617,4,11.36582,77.71505,44.179,0,1],[618,4,11.36763,77.72483,18.973,2,1],[619,4,11.36018,77.72233,24.782,2,1],[620,4,11.361,77.71909,35.335,2,2],[621,4,11.36465,77.71977,52.121,1,1],[622,4,11.37505,77.71056,108.688,0,1],[623,4,11.36525,77.71318,23.449,2,1],[624,4,11.36645,77.71514,14.048,1,1],[625,4,11.35844,77.72149,18.952,1,1],[626,4,11.36178,77.70974,73.749,2,1],[627,4,11.3655,77.72443,41.691,2,2],[628,4,11.35859,77.72,29.405,2,1],[629,4,11.35642,77.71588,31.511,3,2],[630,4,11.36822,77.71282,26.216,2,1],[631,4,11.36059,77.72189,15.945,2,1],[632,4,11.36218,77.71296,57.709,2,2],[633,4,11.36489,77.71132,115.398,0,1],[634,4,11.36783,77.71894,34.426,2,2],[635,4,11.3606,77.72094,41.866,2,1],[636,4,11.3704,77.71392,29.536,1,1],[637,4,11.36111,77.71739,53.945,2,2],[638,4,11.36601,77.71912,25.563,2,1],[639,4,11.3581,77.72473,35.858,2,1],[640,4,11.36439,77.71641,33.955,2,1],[641,4,11.36063,77.71339,31.599,2,1],[642,4,11.35868,77.73382,108.356,0,2],[643,4,11.35523,77.71704,70.426,0,1],[644,4,11.36431,77.70205,17.143,2,1],[645,4,11.37067,77.71757,62.194,2,2],[646,4,11.36224,77.72857,72.477,2,1],[647,4,11.37132,77.70773,80.069,3,2],[648,4,11.34788,77.71713,76.69,0,1],[649,4,11.36413,77.7153,41.85,1,1],[650,4,11.35566,77.71453,29.571,0,2],[651,4,11.35126,77.71014,31.024,2,1],[652,4,11.36355,77.70754,59.771,2,1],[653,4,11.36144,77.71947,31.615,2,1],[654,4,11.36061,77.72194,43.43,1,2],[655,4,11.37175,77.70999,39.379,0,2],[656,4,11.35436,77.72638,51.809,3,1],[657,4,11.3576,77.70599,28.302,0,1],[658,4,11.35601,77.7152,32.467,2,2],[659,4,11.36238,77.72109,29.539,2,1],[660,4,11.36054,77.72638,49.102,1,1],[661,4,11.36216,77.724,21.865,1,1],[662,4,11.36482,77.71695,30.152,2,1],[663,4,11.35443,77.71727,19.955,3,2],[664,4,11.35787,77.71972,21.265,2,1],[665,4,11.35555,77.72728,49.061,0,2],[666,4,11.35912,77.71661,28.844,2,2],[667,4,11.3624,77.73283,34.965,2,1],[668,4,11.35502,77.71056,79.123,1,1],[669,4,11.36181,77.72528,23.301,0,1],[670,4,11.36045,77.70677,29.522,2,2],[671,4,11.37173,77.71805,35.672,0,2],[672,4,11.34965,77.72086,44.903,2,1],[673,4,11.36793,77.72513,17.063,0,1],[674,4,11.35848,77.71898,15.672,2,1],[675,4,11.35525,77.70945,28.034,2,2],[676,4,11.37058,77.71098,92.673,2,1],[677,4,11.36462,77.71537,18.375,1,1],[678,4,11.36636,77.72193,68.504,2,2],[679,4,11.36644,77.72095,65.061,2,2],[680,4,11.36728,77.71677,21.486,2,1],[681,4,11.36797,77.72069,27.943,1,1],[682,4,11.35824,77.72166,21.874,1,1],[683,4,11.3638,77.71437,25.98,1,2],[684,4,11.35102,77.71748,26.199,0,2],[685,4,11.357,77.71235,17.449,3,2],[686,4,11.35709,77.72092,38.34,0,2],[687,4,11.3678,77.71688,49.797,1,1],[688,4,11.35793,77.71747,37.846,2,1],[689,4,11.36311,77.70686,24.413,1,1],[690,4,11.3596,77.71889,28.019,1,1],[691,4,11.36363,77.71533,16.561,1,1],[692,4,11.36084,77.71102,56.648,2,1],[693,4,11.3561,77.71375,39.898,2,1],[694,4,11.36824,77.71467,32.892,0,1],[695,4,11.36769,77.71382,24.654,2,1],[696,4,11.36596,77.7211,48.111,2,1],[697,4,11.35797,77.71397,36.998,0,2],[698,4,11.35627,77.71653,24.365,2,2],[699,4,11.35148,77.71893,21.072,0,2],[700,4,11.36528,77.72157,45.942,2,1],[701,4,11.35485,77.71942,26.598,2,2],[702,4,11.37388,77.7123,42.503,2,2],[703,4,11.35914,77.71525,28.765,1,2],[704,4,11.34883,77.71993,43.451,2,2],[705,4,11.35831,77.72084,31.265,2,1],[706,4,11.36632,77.71678,29.616,0,2],[707,4,11.36466,77.716,56.054,2,1],[708,4,11.36185,77.70767,25.753,2,1],[709,4,11.36321,77.71654,73.329,2,1],[710,4,11.35867,77.7193,46.003,0,2],[711,4,11.36272,77.70541,26.247,1,2],[712,4,11.3633,77.71847,72.316,0,1],[713,4,11.35368,77.71392,43.838,0,1],[714,4,11.35456,77.71536,46.264,2,2],[715,4,11.36547,77.71859,26.435,1,2],[716,4,11.36186,77.72124,35.039,1,1],[717,4,11.35352,77.71087,14.569,2,1],[718,4,11.35996,77.71201,41.076,2,2],[719,4,11.36354,77.72448,34.85,2,2],[720,4,11.36331,77.71119,21.846,1,2],[721,4,11.37492,77.71245,31.001,0,2],[722,4,11.36711,77.71655,29.232,2,1],[723,4,11.36168,77.70592,20.636,2,2],[724,4,11.35582,77.72144,22.812,0,1],[725,4,11.36535,77.71418,35.084,0,2],[726,4,11.352,77.71592,49.096,0,1],[727,4,11.3589,77.71775,25.323,0,2],[728,4,11.36391,77.71292,31.656,2,2],[729,4,11.35958,77.71292,21.011,2,2],[730,4,11.35497,77.72278,15.027,0,1],[731,4,11.34894,77.7154,39.822,0,1],[732,4,11.36021,77.72124,23.326,2,1],[733,4,11.36161,77.71048,40.048,1,1],[734,4,11.36212,77.71522,24.487,2,1],[735,4,11.3636,77.71923,49.195,2,1],[736,4,11.35785,77.72068,26.42,2,1],[737,4,11.35656,77.71911,73.032,2,1],[738,4,11.35287,77.70775,39.705,2,1],[739,4,11.36025,77.72323,34.599,2,2],[740,4,11.36535,77.71253,27.078,1,1],[741,4,11.35999,77.71671,41.624,3,2],[742,4,11.36434,77.71622,16.478,2,1],[743,4,11.36842,77.71046,37.308,2,1],[744,4,11.36166,77.71855,22.722,2,2],[745,4,11.36748,77.71435,33.59,2,2],[746,4,11.36745,77.71576,49.024,0,1],[747,4,11.36791,77.70792,23.738,0,1],[748,4,11.35486,77.7284,47.11,2,2],[749,4,11.36609,77.72809,54.373,2,2],[750,5,11.36334,77.75668,33.649,1,1],[751,5,11.36475,77.74732,22.144,3,2],[752,5,11.35849,77.74614,52.138,3,2],[753,5,11.35422,77.73683,25.002,0,1],[754,5,11.34769,77.74157,91.759,3,2],[755,5,11.35374,77.7319,36.845,1,1],[756,5,11.36149,77.7433,12.0,1,1],[757,5,11.36425,77.73244,23.501,1,2],[758,5,11.36305,77.73494,53.35,0,2],[759,5,11.35664,77.72457,37.685,3,2],[760,5,11.37677,77.73503,19.589,1,1],[761,5,11.3561,77.73678,28.076,2,2],[762,5,11.36543,77.74304,85.431,0,1],[763,5,11.36706,77.73859,72.655,1,2],[764,5,11.37357,77.73252,59.919,1,1],[765,5,11.36571,77.74288,67.298,1,1],[766,5,11.36208,77.73909,33.781,0,2],[767,5,11.35314,77.73286,43.324,0,2],[768,5,11.36616,77.74267,51.621,1,1],[769,5,11.3702,77.74392,25.59,1,2],[770,5,11.36951,77.74001,51.685,1,1],[771,5,11.36086,77.73104,34.978,1,1],[772,5,11.36419,77.73318,29.373,1,1],[773,5,11.36921,77.73997,24.068,1,2],[774,5,11.35641,77.73006,19.752,1,2],[775,5,11.36177,77.72963,27.585,0,1],[776,5,11.36862,77.73877,91.959,1,2],[777,5,11.36834,77.74417,16.883,1,2],[778,5,11.36252,77.73883,17.476,0,1],[779,5,11.35541,77.73013,45.241,3,2],[780,5,11.36688,77.7394,18.357,1,2],[781,5,11.35775,77.7318,70.735,0,2],[782,5,11.35348,77.74797,23.588,3,1],[783,5,11.35216,77.74204,22.051,1,2],[784,5,11.35529,77.73643,82.633,1,1],[785,5,11.35894,77.73264,24.487,1,2],[786,5,11.35539,77.74918,73.469,2,1],[787,5,11.35467,77.73592,31.392,0,2],[788,5,11.36012,77.73598,50.666,1,1],[789,5,11.36069,77.73436,44.835,1,2],[790,5,11.36592,77.73911,33.207,1,2],[791,5,11.35621,77.73498,36.728,1,2],[792,5,11.36222,77.74916,31.45,1,2],[793,5,11.36139,77.74263,25.355,3,1],[794,5,11.3698,77.72723,26.791,0,1],[795,5,11.37216,77.73812,86.275,1,1],[796,5,11.3569,77.73885,25.089,1,2],[797,5,11.3438,77.7368,101.364,1,1],[798,5,11.36374,77.73312,27.767,1,1],[799,5,11.36727,77.73203,38.335,1,1],[800,5,11.36267,77.7421,20.191,1,1],[801,5,11.35897,77.73666,35.078,1,2],[802,5,11.35771,77.73962,24.877,1,1],[803,5,11.35613,77.73794,63.043,1,1],[804,5,11.35984,77.7299,26.696,0,1],[805,5,11.36281,77.74216,76.472,0,2],[806,5,11.35904,77.73273,46.789,1,2],[807,5,11.36256,77.73128,21.325,1,1],[808,5,11.36625,77.73646,66.39,3,1],[809,5,11.35567,77.72535,57.029,1,2],[810,5,11.3713,77.73675,34.625,1,1],[811,5,11.35808,77.73499,16.152,0,2],[812,5,11.36812,77.741,25.023,1,1],[813,5,11.3702,77.74256,33.405,1,2],[814,5,11.35505,77.73859,44.967,0,1],[815,5,11.36359,77.73749,48.505,0,2],[816,5,11.35189,77.72954,30.915,1,2],[817,5,11.35268,77.7418,21.102,3,1],[818,5,11.36984,77.74466,57.296,0,1],[819,5,11.3602,77.73722,38.259,1,1],[820,5,11.36932,77.73011,56.9,1,2],[821,5,11.36915,77.73645,67.701,0,1],[822,5,11.35668,77.72929,77.615,1,1],[823,5,11.36101,77.73526,59.82,1,1],[824,5,11.36555,77.73282,55.753,3,2],[825,5,11.37341,77.7328,25.364,3,1],[826,5,11.36005,77.73584,20.875,3,2],[827,5,11.35758,77.74194,46.415,0,2],[828,5,11.35882,77.74903,56.099,3,1],[829,5,11.35949,77.73945,60.701,1,1],[830,5,11.35921,77.7437,42.718,3,2],[831,5,11.35346,77.73892,21.457,0,2],[832,5,11.35696,77.73446,45.997,0,1],[833,5,11.36468,77.74034,28.73,3,2],[834,5,11.36129,77.73457,61.084,1,1],[835,5,11.37448,77.74155,65.21,0,2],[836,5,11.3637,77.7381,44.714,1,1],[837,5,11.35152,77.73408,12.967,0,2],[838,5,11.35318,77.7393,21.283,3,1],[839,5,11.37421,77.73262,53.779,1,2],[840,5,11.37195,77.73077,73.563,1,1],[841,5,11.35824,77.7325,23.341,0,1],[842,5,11.36921,77.73238,35.452,1,2],[843,5,11.35467,77.72886,28.342,1,1],[844,5,11.3698,77.73471,19.543,1,2],[845,5,11.36803,77.7496,31.099,3,2],[846,5,11.36935,77.74271,24.7,3,2],[847,5,11.36147,77.72865,38.232,3,1],[848,5,11.35337,77.73745,19.192,1,2],[849,5,11.354,77.73166,45.016,1,2],[850,5,11.36298,77.73318,31.059,1,2],[851,5,11.35331,77.73377,50.187,1,1],[852,5,11.36669,77.74516,82.183,0,1],[853,5,11.35692,77.74585,47.26,1,2],[854,5,11.35166,77.73966,13.136,3,2],[855,5,11.35972,77.73857,48.281,1,1],[856,5,11.36954,77.73951,38.829,0,2],[857,5,11.36938,77.73466,35.64,0,2],[858,5,11.35727,77.73291,53.244,3,2],[859,5,11.35387,77.73674,95.068,3,1],[860,5,11.35589,77.74032,31.427,0,1],[861,5,11.36389,77.73759,44.602,1,2],[862,5,11.36878,77.73658,27.514,3,1],[863,5,11.3516,77.74171,24.352,1,2],[864,5,11.36246,77.73532,47.958,3,2],[865,5,11.36524,77.74698,28.521,0,1],[866,5,11.36144,77.73572,65.412,1,1],[867,5,11.36321,77.73822,33.99,0,1],[868,5,11.35441,77.73396,29.792,1,1],[869,5,11.35976,77.7354,61.815,1,2],[870,5,11.36597,77.74326,24.147,1,2],[871,5,11.36628,77.73272,60.202,1,1],[872,5,11.3594,77.74819,41.883,1,2],[873,5,11.36598,77.72972,69.252,1,1],[874,5,11.35383,77.7464,33.292,1,2],[875,5,11.37889,77.73733,41.467,1,1],[876,5,11.34965,77.74289,25.787,1,1],[877,5,11.363,77.74951,35.404,1,1],[878,5,11.35485,77.73287,34.113,0,1],[879,5,11.36634,77.73376,40.001,3,1],[880,5,11.35676,77.72951,46.03,0,2],[881,5,11.36386,77.735,54.57,2,2],[882,5,11.35247,77.73986,29.517,1,2],[883,5,11.35496,77.74184,13.489,1,2],[884,5,11.36221,77.74166,24.517,2,1],[885,5,11.35727,77.74227,36.986,3,1],[886,5,11.36321,77.74178,21.107,1,1],[887,5,11.35854,77.74105,57.355,3,2],[888,5,11.35352,77.72925,20.79,0,2],[889,5,11.37563,77.72151,29.189,0,2],[890,5,11.3634,77.74006,14.639,1,2],[891,5,11.35653,77.74229,23.477,3,2],[892,5,11.36483,77.74503,34.242,1,1],[893,5,11.36578,77.73894,67.378,1,1],[894,5,11.35663,77.74113,13.714,1,1],[895,5,11.36003,77.74323,41.665,1,1],[896,5,11.34477,77.73038,39.375,0,1],[897,5,11.34975,77.7362,63.741,0,1],[898,5,11.36488,77.73634,26.431,1,1],[899,5,11.34905,77.73329,70.077,1,1],[900,6,11.36406,77.75897,64.717,1,1],[901,6,11.37753,77.75588,27.651,0,2],[902,6,11.36512,77.75688,69.729,1,2],[903,6,11.35595,77.76833,32.282,0,2],[904,6,11.36816,77.76156,43.562,0,1],[905,6,11.36465,77.762,18.41,3,1],[906,6,11.36573,77.75658,35.702,1,2],[907,6,11.37359,77.75759,27.361,0,1],[908,6,11.35523,77.76126,28.913,0,1],[909,6,11.36323,77.76639,44.795,0,1],[910,6,11.36214,77.75213,43.068,0,1],[911,6,11.3609,77.76978,52.309,0,2],[912,6,11.36265,77.76773,53.562,0,1],[913,6,11.36404,77.74922,58.604,0,1],[914,6,11.34917,77.75819,35.18,0,1],[915,6,11.36146,77.75369,30.467,0,1],[916,6,11.35853,77.75826,34.411,0,1],[917,6,11.35967,77.75688,29.365,1,2],[918,6,11.36359,77.76252,35.626,1,1],[919,6,11.36582,77.75459,60.649,3,2],[920,6,11.36319,77.76327,31.201,1,2],[921,6,11.35994,77.75747,22.867,3,1],[922,6,11.35927,77.75721,84.42,0,1],[923,6,11.36617,77.75809,16.368,0,1],[924,6,11.3572,77.76368,31.283,0,1],[925,6,11.36985,77.76413,34.326,0,1],[926,6,11.36605,77.76029,28.808,0,2],[927,6,11.35954,77.76518,15.788,0,1],[928,6,11.35792,77.74882,26.667,0,1],[929,6,11.36458,77.75659,45.561,3,1],[930,6,11.36826,77.75635,33.826,1,2],[931,6,11.36446,77.75542,67.505,0,2],[932,6,11.36726,77.76566,61.398,3,1],[933,6,11.36172,77.75388,84.933,1,1],[934,6,11.35275,77.75179,62.675,0,1],[935,6,11.36441,77.75544,45.73,0,2],[936,6,11.35941,77.75956,53.878,0,1],[937,6,11.3536,77.76353,26.43,1,1],[938,6,11.36921,77.76084,23.537,0,1],[939,6,11.36169,77.75431,21.807,1,1],[940,6,11.36362,77.76343,40.456,0,1],[941,6,11.36597,77.7645,33.668,0,1],[942,6,11.36325,77.76641,41.736,0,1],[943,6,11.35522,77.75673,62.688,3,2],[944,6,11.36596,77.75962,16.414,0,1],[945,6,11.3655,77.75076,28.25,3,1],[946,6,11.37053,77.76043,28.407,0,1],[947,6,11.35933,77.75271,49.875,0,2],[948,6,11.35945,77.75163,49.903,0,1],[949,6,11.3647,77.75978,31.243,0,1],[950,6,11.37263,77.76201,64.981,0,2],[951,6,11.36195,77.75711,20.374,1,1],[952,6,11.37248,77.75751,84.317,0,1],[953,6,11.36127,77.76138,49.499,0,1],[954,6,11.36536,77.7591,22.279,0,2],[955,6,11.35892,77.76101,37.515,1,1],[956,6,11.35931,77.75979,33.326,0,1],[957,6,11.36305,77.76268,82.927,0,2],[958,6,11.3444,77.7615,26.057,0,2],[959,6,11.36432,77.75666,31.256,0,2],[960,6,11.35966,77.75396,21.623,0,2],[961,6,11.36135,77.75431,75.86,0,2],[962,6,11.35436,77.76475,47.896,1,1],[963,6,11.35541,77.75636,19.654,0,2],[964,6,11.35766,77.75593,40.29,3,1],[965,6,11.35872,77.75844,12.0,0,2],[966,6,11.36611,77.7503,19.113,0,2],[967,6,11.36295,77.75359,35.81,1,1],[968,6,11.36688,77.75464,27.811,3,1],[969,6,11.35504,77.74847,23.667,1,1],[970,6,11.37447,77.7532,22.616,0,1],[971,6,11.35871,77.75907,37.668,2,1],[972,6,11.35435,77.74292,28.327,0,1],[973,6,11.35514,77.75642,61.659,3,1],[974,6,11.36198,77.76351,25.954,0,1],[975,6,11.36573,77.76449,75.287,0,1],[976,6,11.37018,77.74911,27.547,0,1],[977,6,11.36194,77.76122,51.741,0,1],[978,6,11.36186,77.76329,55.16,0,1],[979,6,11.36495,77.7577,32.291,0,1],[980,6,11.35589,77.75097,32.519,2,1],[981,6,11.36313,77.7715,18.562,2,1],[982,6,11.35777,77.75421,44.447,0,1],[983,6,11.35735,77.76291,30.801,1,2],[984,6,11.36904,77.76342,85.888,1,1],[985,6,11.37248,77.76055,31.08,0,1],[986,6,11.36667,77.75393,41.866,0,2],[987,6,11.36609,77.75961,23.288,0,2],[988,6,11.35741,77.75617,14.953,0,1],[989,6,11.36364,77.75409,43.377,0,2],[990,6,11.3681,77.75229,55.294,0,2],[991,6,11.35199,77.75979,16.124,0,1],[992,6,11.35127,77.74764,36.731,0,2],[993,6,11.3652,77.74989,72.161,0,1],[994,6,11.36112,77.76325,18.958,0,2],[995,6,11.36371,77.76259,48.417,1,1],[996,6,11.36683,77.7609,19.233,1,2],[997,6,11.36332,77.74997,34.52,1,1],[998,6,11.36265,77.76502,21.83,3,1],[999,6,11.36309,77.76145,38.267,0,1],[1000,6,11.36443,77.7564,76.584,1,2],[1001,6,11.36368,77.74713,24.513,0,1],[1002,6,11.35914,77.76898,42.127,0,1],[1003,6,11.36938,77.74825,61.639,0,1],[1004,6,11.37372,77.75993,40.965,0,1],[1005,6,11.36526,77.76191,40.543,0,1],[1006,6,11.36018,77.76054,17.55,1,1],[1007,6,11.37126,77.76196,43.179,0,1],[1008,6,11.36091,77.75434,27.554,0,2],[1009,6,11.36679,77.76077,71.263,0,1],[1010,6,11.35825,77.75943,84.23,0,1],[1011,6,11.36672,77.76749,42.713,0,1],[1012,6,11.36137,77.75532,19.174,0,2],[1013,6,11.35653,77.75366,25.586,0,1],[1014,6,11.37606,77.75367,41.075,1,1],[1015,6,11.35681,77.76375,54.066,0,1],[1016,6,11.3701,77.75516,21.928,1,1],[1017,6,11.37134,77.74742,58.876,0,1],[1018,6,11.3492,77.76188,29.251,0,1],[1019,6,11.35572,77.75205,21.128,0,1],[1020,6,11.35496,77.7546,35.048,0,1],[1021,6,11.36577,77.76119,21.291,0,1],[1022,6,11.35977,77.76086,29.863,0,1],[1023,6,11.36999,77.74508,25.713,0,1],[1024,6,11.35923,77.76867,46.094,0,2],[1025,6,11.35692,77.74835,30.894,1,2],[1026,6,11.36883,77.7546,24.123,1,1],[1027,6,11.37335,77.75657,55.302,0,1],[1028,6,11.36767,77.76171,41.526,0,1],[1029,6,11.36495,77.76867,30.911,0,1],[1030,6,11.36086,77.76041,78.749,3,1],[1031,6,11.35832,77.75667,25.268,1,1],[1032,6,11.34437,77.75153,27.459,0,2],[1033,6,11.36187,77.76179,30.231,0,2],[1034,6,11.35495,77.74455,23.745,0,2],[1035,6,11.36158,77.75893,70.93,0,1],[1036,6,11.37025,77.76523,24.052,0,1],[1037,6,11.36183,77.76743,37.065,0,1],[1038,6,11.36391,77.75773,50.858,0,1],[1039,6,11.36864,77.75741,64.9,0,1],[1040,6,11.35512,77.74768,31.687,1,1],[1041,6,11.35692,77.75103,37.091,0,2],[1042,6,11.36232,77.75109,37.047,0,1],[1043,6,11.34659,77.76112,32.12,0,1],[1044,6,11.36438,77.7556,26.53,1,1],[1045,6,11.36233,77.76165,22.807,0,2],[1046,6,11.36227,77.7619,30.801,0,2],[1047,6,11.35674,77.75036,40.004,1,1],[1048,6,11.35872,77.74881,35.675,1,1],[1049,6,11.3679,77.76098,28.439,0,2],[1050,7,11.36114,77.78084,17.333,1,1],[1051,7,11.35522,77.7716,80.854,0,1],[1052,7,11.35765,77.77444,17.947,0,1],[1053,7,11.35401,77.77912,27.273,1,1],[1054,7,11.36463,77.77842,18.11,1,1],[1055,7,11.35857,77.78265,26.123,0,1],[1056,7,11.37565,77.7729,27.646,0,1],[1057,7,11.34592,77.77607,26.639,3,1],[1058,7,11.3646,77.78256,44.771,0,1],[1059,7,11.35455,77.77251,47.971,1,1],[1060,7,11.36078,77.77791,50.73,3,1],[1061,7,11.36215,77.78562,46.397,1,1],[1062,7,11.36063,77.75981,48.298,0,1],[1063,7,11.3618,77.77659,22.01,3,1],[1064,7,11.35353,77.78924,34.295,1,1],[1065,7,11.36513,77.7781,12.0,0,1],[1066,7,11.35914,77.77995,39.158,0,1],[1067,7,11.35101,77.78027,31.271,0,1],[1068,7,11.36488,77.77736,23.381,3,1],[1069,7,11.35645,77.78688,33.524,0,1],[1070,7,11.36324,77.78336,31.859,1,1],[1071,7,11.34469,77.77438,33.873,0,1],[1072,7,11.35584,77.79508,30.551,0,1],[1073,7,11.36298,77.7794,40.235,1,1],[1074,7,11.36584,77.76738,55.367,0,1],[1075,7,11.36062,77.77426,12.187,0,1],[1076,7,11.35517,77.77871,29.62,1,2],[1077,7,11.36254,77.77673,32.571,0,1],[1078,7,11.35754,77.76883,63.915,0,2],[1079,7,11.36075,77.76762,25.959,0,1],[1080,7,11.35971,77.77495,61.541,1,1],[1081,7,11.36225,77.76908,28.524,1,2],[1082,7,11.36037,77.78211,46.07,1,1],[1083,7,11.35486,77.76775,23.271,1,1],[1084,7,11.35846,77.77795,78.961,0,1],[1085,7,11.35911,77.76412,44.966,0,1],[1086,7,11.35444,77.77137,18.549,2,1],[1087,7,11.36245,77.78846,24.37,0,1],[1088,7,11.36702,77.76563,28.177,1,1],[1089,7,11.35565,77.77139,18.345,1,1],[1090,7,11.36999,77.78467,38.112,1,1],[1091,7,11.36009,77.78059,48.808,1,1],[1092,7,11.35844,77.7775,64.079,0,1],[1093,7,11.36751,77.7834,27.936,0,1],[1094,7,11.3577,77.77477,66.941,0,1],[1095,7,11.35226,77.78802,44.62,1,1],[1096,7,11.35571,77.77851,26.32,0,1],[1097,7,11.3621,77.78252,32.262,0,1],[1098,7,11.35824,77.7774,50.96,3,1],[1099,7,11.3529,77.77539,20.762,0,1],[1100,7,11.36116,77.77473,30.708,1,1],[1101,7,11.36164,77.76816,56.21,0,1],[1102,7,11.36324,77.77549,23.182,1,1],[1103,7,11.36853,77.76819,56.119,1,1],[1104,7,11.36271,77.7715,33.52,3,1],[1105,7,11.36964,77.77517,69.936,1,1],[1106,7,11.35967,77.77543,57.835,1,1],[1107,7,11.36474,77.77471,28.63,3,1],[1108,7,11.36584,77.78102,40.544,1,1],[1109,7,11.35734,77.77488,44.116,1,1],[1110,7,11.3603,77.77714,40.159,1,1],[1111,7,11.35783,77.77926,41.14,1,1],[1112,7,11.36266,77.77966,53.367,1,1],[1113,7,11.35961,77.77428,72.225,0,1],[1114,7,11.34986,77.79217,34.82,3,1],[1115,7,11.37042,77.77589,12.001,1,1],[1116,7,11.35629,77.77993,28.202,0,1],[1117,7,11.36223,77.76717,54.937,0,1],[1118,7,11.35878,77.7685,23.595,1,1],[1119,7,11.3632,77.77334,39.679,1,1],[1120,7,11.35717,77.76891,39.756,1,1],[1121,7,11.35914,77.77406,54.067,0,1],[1122,7,11.35483,77.77198,50.303,0,1],[1123,7,11.35848,77.77629,23.286,0,1],[1124,7,11.35584,77.77696,22.205,1,1],[1125,7,11.36315,77.77563,28.48,0,1],[1126,7,11.36208,77.77008,43.592,1,1],[1127,7,11.35802,77.77544,76.153,1,1],[1128,7,11.35836,77.76904,53.96,0,1],[1129,7,11.34753,77.76964,14.26,3,1],[1130,7,11.3488,77.77586,23.393,0,1],[1131,7,11.37123,77.77231,46.332,0,1],[1132,7,11.37257,77.76914,47.163,1,1],[1133,7,11.36407,77.77024,34.734,1,1],[1134,7,11.35543,77.7791,23.065,2,1],[1135,7,11.35298,77.76798,26.418,0,1],[1136,7,11.36526,77.77878,75.561,1,1],[1137,7,11.35032,77.77821,34.024,0,1],[1138,7,11.36657,77.77784,37.919,3,1],[1139,7,11.35944,77.78046,40.089,1,1],[1140,7,11.35435,77.77869,46.929,1,2],[1141,7,11.36469,77.7727,50.319,1,1],[1142,7,11.35961,77.78086,36.608,1,1],[1143,7,11.3523,77.77698,14.41,1,1],[1144,7,11.36211,77.77373,26.552,1,1],[1145,7,11.36451,77.77554,29.801,1,2],[1146,7,11.35372,77.77207,27.549,0,1],[1147,7,11.37145,77.78038,16.7,0,2],[1148,7,11.3601,77.77852,25.957,0,1],[1149,7,11.35366,77.77577,54.652,0,2],[1150,7,11.35823,77.77099,48.407,0,1],[1151,7,11.35863,77.77516,32.148,1,1],[1152,7,11.36744,77.78161,48.307,1,1],[1153,7,11.36727,77.78138,39.411,1,1],[1154,7,11.3696,77.78497,32.531,1,1],[1155,7,11.36517,77.77989,34.479,1,1],[1156,7,11.35834,77.77711,22.952,3,1],[1157,7,11.36263,77.777,55.896,1,1],[1158,7,11.36809,77.77828,30.25,1,1],[1159,7,11.36077,77.78412,38.533,1,1],[1160,7,11.35954,77.77376,14.86,1,1],[1161,7,11.36007,77.76041,54.518,0,1],[1162,7,11.35198,77.77902,25.273,0,2],[1163,7,11.34671,77.78409,21.392,1,1],[1164,7,11.36401,77.77272,43.657,0,1],[1165,7,11.35584,77.78312,23.625,0,1],[1166,7,11.36234,77.76687,87.806,0,1],[1167,7,11.35982,77.78515,26.98,1,1],[1168,7,11.36432,77.768,51.824,0,1],[1169,7,11.36152,77.76445,45.791,3,2],[1170,7,11.36289,77.79504,12.0,1,1],[1171,7,11.35391,77.77503,31.103,0,1],[1172,7,11.35978,77.77359,64.996,1,2],[1173,7,11.35862,77.78722,28.67,0,1],[1174,7,11.35372,77.77208,39.997,0,1],[1175,7,11.35963,77.76939,37.114,1,1],[1176,7,11.3705,77.77103,35.297,1,1],[1177,7,11.36369,77.77596,59.255,0,1],[1178,7,11.36104,77.76682,106.095,1,1],[1179,7,11.36532,77.78243,25.094,1,1],[1180,7,11.37768,77.77904,34.361,1,1],[1181,7,11.3705,77.77549,26.538,0,1],[1182,7,11.36512,77.7792,48.241,3,1],[1183,7,11.36637,77.779,28.561,3,1],[1184,7,11.36036,77.78191,55.618,1,1],[1185,7,11.36139,77.77832,33.116,1,1],[1186,7,11.35683,77.78144,38.996,0,1],[1187,7,11.36086,77.77717,31.611,0,1],[1188,7,11.3558,77.77572,51.992,1,1],[1189,7,11.35266,77.77183,42.445,1,1],[1190,7,11.35793,77.77613,42.104,1,2],[1191,7,11.3503,77.78002,47.747,1,1],[1192,7,11.36045,77.78907,34.254,1,1],[1193,7,11.36673,77.76751,49.102,1,1],[1194,7,11.35822,77.77257,12.0,1,1],[1195,7,11.35149,77.78348,74.075,1,1],[1196,7,11.35241,77.77859,22.231,0,1],[1197,7,11.36298,77.77096,26.844,0,2],[1198,7,11.36486,77.77139,40.204,1,1],[1199,7,11.3511,77.77579,33.238,1,1]]};
+</script>
+<script>
+/* RoofRx engine: JavaScript port of roofrx/thermal.py and roofrx/optimizer.py.
+ * Pure functions, no DOM. Used by the website and by web/check_parity.py (node).
+ * Material values are ASSUMED placeholders, same as roofrx/materials.py. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.RoofRx = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var MATERIALS = [
+    { name: 'metal', alpha: 0.75, u: 5.0 },
+    { name: 'concrete', alpha: 0.65, u: 2.5 },
+    { name: 'tile', alpha: 0.60, u: 2.0 },
+    { name: 'other', alpha: 0.70, u: 3.5 }
+  ];
+  var COOL_ALPHA = 0.30, H_OUT = 17.0, C0 = 6.0e4, H0 = 2.5, SPINUP = 2, SUB = 6;
+
+  /* ---------- weather (idealised hot week, synthetic) ---------- */
+  function syntheticWeather(days) {
+    days = days || 7;
+    var n = days * 24, temp = new Float64Array(n), ghi = new Float64Array(n);
+    for (var k = 0; k < n; k++) {
+      var h = k % 24;
+      temp[k] = 34 + 6 * Math.sin(2 * Math.PI * (h - 9) / 24);
+      var g = Math.max(900 * Math.sin(Math.PI * (h - 6) / 12), 0);
+      ghi[k] = (h < 6 || h > 18) ? 0 : g;
+    }
+    return { temp: temp, ghi: ghi, n: n };
+  }
+
+  /* Turn hourly arrays (e.g. from Open-Meteo) into a model weather object. Throws if unusable. */
+  function weatherFromArrays(temp, ghi) {
+    var n = Math.floor(Math.min(temp.length, ghi.length) / 24) * 24, i, gaps = 0;
+    if (n < 72) throw new Error('Need at least 3 full days of hourly weather.');
+    var t = new Float64Array(n), g = new Float64Array(n), lt = null, lg = 0;
+    for (i = 0; i < n; i++) {
+      var a = temp[i], b = ghi[i];
+      if (a === null || a === undefined || !isFinite(a)) { gaps++; a = lt; }
+      if (b === null || b === undefined || !isFinite(b)) { gaps++; b = lg; }
+      if (a === null) throw new Error('Weather data starts with a gap.');
+      if (a < -60 || a > 60 || b < 0 || b > 1600) throw new Error('Weather values look wrong (temperature or radiation out of range).');
+      t[i] = a; g[i] = b; lt = a; lg = b;
+    }
+    if (gaps > 24) throw new Error('Too many gaps in the weather data.');
+    return { temp: t, ghi: g, n: n };
+  }
+
+  /* ---------- buildings ---------- */
+  function makeBuildings(o) {
+    o.n = o.id.length;
+    return o;
+  }
+
+  function fromRows(rows, wardNames) {
+    var n = rows.length;
+    var b = {
+      id: new Array(n), wardNames: wardNames, ward: new Int32Array(n),
+      lat: new Float64Array(n), lon: new Float64Array(n), area: new Float64Array(n),
+      mat: new Int8Array(n), storeys: new Float64Array(n)
+    };
+    for (var i = 0; i < n; i++) {
+      var r = rows[i];
+      b.id[i] = r[0]; b.ward[i] = r[1]; b.lat[i] = r[2]; b.lon[i] = r[3];
+      b.area[i] = r[4]; b.mat[i] = r[5]; b.storeys[i] = r[6];
+    }
+    return makeBuildings(b);
+  }
+
+  function splitCsvLine(line) {
+    var out = [], cur = '', q = false;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line[i];
+      if (q) {
+        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (ch === '"') q = false;
+        else cur += ch;
+      } else if (ch === '"') q = true;
+      else if (ch === ',') { out.push(cur); cur = ''; }
+      else cur += ch;
+    }
+    out.push(cur);
+    return out;
+  }
+
+  /* Same rules as roofrx/data.py load_buildings. Throws Error with a readable message. */
+  function parseCsv(text) {
+    var lines = String(text).replace(/^﻿/, '').split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
+    if (lines.length < 2) throw new Error('The CSV has no rows.');
+    var head = splitCsvLine(lines[0]).map(function (s) { return s.trim().toLowerCase(); });
+    var req = ['building_id', 'ward', 'lat', 'lon', 'area_m2', 'material'];
+    var missing = req.filter(function (c) { return head.indexOf(c) < 0; });
+    if (missing.length) throw new Error('Missing columns: ' + missing.join(', ') + '. Required: ' + req.join(', ') + '.');
+    var ix = {}; head.forEach(function (c, i) { ix[c] = i; });
+    var n = lines.length - 1;
+    var b = {
+      id: new Array(n), wardNames: [], ward: new Int32Array(n),
+      lat: new Float64Array(n), lon: new Float64Array(n), area: new Float64Array(n),
+      mat: new Int8Array(n), storeys: new Float64Array(n),
+      people: ix.occupants !== undefined ? new Float64Array(n) : null
+    };
+    var wardIx = {}, seen = {}, matIx = {};
+    MATERIALS.forEach(function (m, i) { matIx[m.name] = i; });
+    var badMat = {};
+    for (var r = 0; r < n; r++) {
+      var f = splitCsvLine(lines[r + 1]);
+      var row = r + 2;
+      var lat = Number(f[ix.lat]), lon = Number(f[ix.lon]), area = Number(f[ix.area_m2]);
+      if (f[ix.lat] === '' || !isFinite(lat)) throw new Error("Row " + row + ": 'lat' is missing or not a number.");
+      if (f[ix.lon] === '' || !isFinite(lon)) throw new Error("Row " + row + ": 'lon' is missing or not a number.");
+      if (f[ix.area_m2] === '' || !isFinite(area)) throw new Error("Row " + row + ": 'area_m2' is missing or not a number.");
+      if (lat < -90 || lat > 90 || lon < -180 || lon > 180) throw new Error('Row ' + row + ': lat must be in [-90, 90] and lon in [-180, 180].');
+      if (area <= 0) throw new Error('Row ' + row + ': area_m2 must be positive.');
+      var id = String(f[ix.building_id]).trim();
+      if (seen[id]) throw new Error("building_id '" + id + "' appears more than once. IDs must be unique.");
+      seen[id] = 1;
+      var mname = String(f[ix.material]).trim().toLowerCase();
+      if (!(mname in matIx)) badMat[mname] = 1;
+      var wname = String(f[ix.ward]).trim();
+      if (!(wname in wardIx)) { wardIx[wname] = b.wardNames.length; b.wardNames.push(wname); }
+      var st = ix.storeys !== undefined ? Number(f[ix.storeys]) : 1;
+      b.id[r] = id; b.ward[r] = wardIx[wname]; b.lat[r] = lat; b.lon[r] = lon; b.area[r] = area;
+      b.mat[r] = matIx[mname] === undefined ? 3 : matIx[mname];
+      b.storeys[r] = isFinite(st) && st >= 1 ? st : 1;
+      if (b.people) {
+        var oc = Number(f[ix.occupants]);
+        if (f[ix.occupants] === '' || !isFinite(oc) || oc < 0) throw new Error('Row ' + row + ": 'occupants' must be a number of 0 or more.");
+        b.people[r] = oc;
+      }
+    }
+    var bad = Object.keys(badMat);
+    if (bad.length) throw new Error('Unknown materials: ' + bad.join(', ') + '. Allowed: ' + MATERIALS.map(function (m) { return m.name; }).join(', ') + '.');
+    return makeBuildings(b);
+  }
+
+  /* ---------- thermal model ---------- */
+  function simulate(w, alpha, u, storeys) {
+    var nH = w.n, n = alpha.length, out = new Float64Array(nH * n);
+    var tin = new Float64Array(n).fill(w.temp[0]);
+    var dt = 3600 / SUB;
+    for (var h = 0; h < nH; h++) {
+      var to = w.temp[h], g = w.ghi[h];
+      for (var i = 0; i < n; i++) {
+        var C = C0 * storeys[i], H = H0 * storeys[i];
+        var tsa = to + alpha[i] * g / H_OUT;
+        var t = tin[i];
+        for (var s = 0; s < SUB; s++) {
+          var dT = (u[i] * (tsa - t) + H * (to - t)) / C;
+          t = t + dt * dT;
+        }
+        tin[i] = t; out[h * n + i] = t;
+      }
+    }
+    return out;
+  }
+
+  /* metric 'hours': hours/day above thr.  metric 'degree': degree-hours/day above thr. */
+  function heatLoad(T, nH, n, thr, metric) {
+    var out = new Float64Array(n), days = (nH - SPINUP * 24) / 24, deg = metric === 'degree';
+    for (var h = SPINUP * 24; h < nH; h++)
+      for (var i = 0; i < n; i++) {
+        var d = T[h * n + i] - thr;
+        if (d > 0) out[i] += deg ? d : 1;
+      }
+    for (var j = 0; j < n; j++) out[j] /= days;
+    return out;
+  }
+
+  function meanSteady(T, nH, n) {
+    var out = new Float64Array(n), cnt = nH - SPINUP * 24;
+    for (var h = SPINUP * 24; h < nH; h++) for (var i = 0; i < n; i++) out[i] += T[h * n + i];
+    for (var j = 0; j < n; j++) out[j] /= cnt;
+    return out;
+  }
+
+  /* Run the (slow) simulation once per building set. */
+  function prepare(b, weather) {
+    var w = weather || syntheticWeather(), n = b.n;
+    var alpha = new Float64Array(n), cool = new Float64Array(n), u = new Float64Array(n);
+    for (var i = 0; i < n; i++) {
+      var m = MATERIALS[b.mat[i]];
+      alpha[i] = m.alpha; cool[i] = Math.min(m.alpha, COOL_ALPHA); u[i] = m.u;
+    }
+    var now = simulate(w, alpha, u, b.storeys), cl = simulate(w, cool, u, b.storeys);
+    var mNow = meanSteady(now, w.n, n), mCool = meanSteady(cl, w.n, n), drop = new Float64Array(n);
+    for (var k = 0; k < n; k++) drop[k] = mNow[k] - mCool[k];
+    return { n: n, nH: w.n, now: now, cool: cl, meanDrop: drop, weather: w };
+  }
+
+  /* Cheap: depends on the danger threshold only. */
+  function scoreAt(eng, thr, metric) {
+    var hNow = heatLoad(eng.now, eng.nH, eng.n, thr, metric);
+    var hCool = heatLoad(eng.cool, eng.nH, eng.n, thr, metric);
+    var av = new Float64Array(eng.n);
+    for (var i = 0; i < eng.n; i++) av[i] = Math.max(hNow[i] - hCool[i], 0);
+    return { hNow: hNow, hCool: hCool, avoided: av };
+  }
+
+  function sanity() {
+    var w = syntheticWeather(), rows = [];
+    MATERIALS.forEach(function (m) {
+      [1, 2].forEach(function (st) {
+        var a = simulate(w, [m.alpha], [m.u], [st]);
+        var c = simulate(w, [Math.min(m.alpha, COOL_ALPHA)], [m.u], [st]);
+        var s = 0, mx = -Infinity, cnt = 0;
+        for (var h = SPINUP * 24; h < w.n; h++) { var d = a[h] - c[h]; s += d; cnt++; if (d > mx) mx = d; }
+        rows.push({ material: m.name, storeys: st, mean: s / cnt, peak: mx });
+      });
+    });
+    return rows;
+  }
+
+  /* ---------- optimizer ---------- */
+  function costBenefit(b, avoided, costPerM2, fixed) {
+    var n = b.n, benefit = new Float64Array(n), cost = new Float64Array(n), ratio = new Float64Array(n);
+    for (var i = 0; i < n; i++) {
+      benefit[i] = avoided[i] * (b.people ? b.people[i] : b.area[i]);
+      cost[i] = b.area[i] * costPerM2 + fixed;
+      ratio[i] = benefit[i] / cost[i];
+    }
+    return { benefit: benefit, cost: cost, ratio: ratio };
+  }
+
+  /* Ties on benefit per cost are common (hours are whole hours), so break them by the
+   * continuous indoor drop, then larger area, then row order. Same rule as roofrx/optimizer.py. */
+  function rankRoofs(cb, b, meanDrop) {
+    var idx = [], top = 0, i;
+    for (i = 0; i < cb.ratio.length; i++) if (cb.ratio[i] > top) top = cb.ratio[i];
+    var key = new Float64Array(cb.ratio.length);
+    for (i = 0; i < cb.ratio.length; i++) { key[i] = top > 0 ? Math.round(cb.ratio[i] / top * 1e9) : cb.ratio[i]; if (cb.benefit[i] > 0) idx.push(i); }
+    idx.sort(function (a, c) {
+      return (key[c] - key[a]) || (meanDrop[c] - meanDrop[a]) || (b.area[c] - b.area[a]) || (a - c);
+    });
+    return Int32Array.from(idx);
+  }
+
+  function walk(order, cost, benefit, budget, take) {
+    var spent = 0, ben = 0, cnt = 0;
+    for (var k = 0; k < order.length; k++) {
+      var i = order[k], c = cost[i];
+      if (c + spent <= budget) { spent += c; ben += benefit[i]; cnt++; if (take) take.push(i); }
+    }
+    return { spent: spent, benefit: ben, count: cnt };
+  }
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffle(arr, rnd) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(rnd() * (i + 1)), t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  /* Baseline orders depend on hours (threshold) only, not on budget or cost. */
+  function baselineOrders(b, hNow, nSeeds) {
+    var nW = b.wardNames.length, sum = new Float64Array(nW), cnt = new Float64Array(nW), pos = [], i, w;
+    for (w = 0; w < nW; w++) pos.push([]);
+    for (i = 0; i < b.n; i++) { sum[b.ward[i]] += hNow[i]; cnt[b.ward[i]]++; pos[b.ward[i]].push(i); }
+    var rank = [];
+    for (w = 0; w < nW; w++) rank.push(w);
+    rank.sort(function (a, c) { return (sum[c] / cnt[c]) - (sum[a] / cnt[a]) || a - c; });
+    var ward = [], rand = [];
+    for (var s = 0; s < nSeeds; s++) {
+      var rnd = mulberry32(1000 + s), o = [];
+      rank.forEach(function (wi) { shuffle(pos[wi].slice(), rnd).forEach(function (p) { o.push(p); }); });
+      ward.push(Int32Array.from(o));
+      var all = []; for (i = 0; i < b.n; i++) all.push(i);
+      rand.push(Int32Array.from(shuffle(all, mulberry32(5000 + s))));
+    }
+    return { ward: ward, rand: rand };
+  }
+
+  function meanStd(a) {
+    var m = 0, i; for (i = 0; i < a.length; i++) m += a[i]; m /= a.length;
+    var v = 0; for (i = 0; i < a.length; i++) v += (a[i] - m) * (a[i] - m);
+    return { mean: m, std: Math.sqrt(v / a.length) };
+  }
+
+  function compareAt(roofOrder, orders, cb, budget) {
+    var roof = walk(roofOrder, cb.cost, cb.benefit, budget);
+    var wb = orders.ward.map(function (o) { return walk(o, cb.cost, cb.benefit, budget).benefit; });
+    var rb = orders.rand.map(function (o) { return walk(o, cb.cost, cb.benefit, budget).benefit; });
+    var w = meanStd(wb), r = meanStd(rb);
+    return {
+      roof: roof, wardMean: w.mean, wardStd: w.std, randMean: r.mean,
+      gainWard: w.mean > 0 ? 100 * (roof.benefit / w.mean - 1) : NaN,
+      gainRand: r.mean > 0 ? 100 * (roof.benefit / r.mean - 1) : NaN
+    };
+  }
+
+  function curve(roofOrder, orders, cb, maxBudget, points) {
+    var xs = [], roof = [], ward = [], rand = [];
+    for (var k = 0; k <= points; k++) {
+      var bud = maxBudget * k / points, c = compareAt(roofOrder, orders, cb, bud);
+      xs.push(bud); roof.push(c.roof.benefit); ward.push(c.wardMean); rand.push(c.randMean);
+    }
+    return { x: xs, roof: roof, ward: ward, rand: rand };
+  }
+
+  return {
+    MATERIALS: MATERIALS, syntheticWeather: syntheticWeather, weatherFromArrays: weatherFromArrays, fromRows: fromRows, parseCsv: parseCsv,
+    prepare: prepare, scoreAt: scoreAt, sanity: sanity, costBenefit: costBenefit, rankRoofs: rankRoofs,
+    walk: walk, baselineOrders: baselineOrders, compareAt: compareAt, curve: curve
+  };
+});
+
+</script>
+<script>
+/* RoofRx website UI. All numbers come from web/engine.js (checked against Python). */
+(function () {
+  'use strict';
+  var R = window.RoofRx, D = window.ROOFRX_DATA;
+  var $ = function (id) { return document.getElementById(id); };
+  var N_SEEDS = 30, CURVE_PTS = 40, MAT = R.MATERIALS.map(function (m) { return m.name; });
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function inr(x) { return '₹' + Math.round(x).toLocaleString('en-IN'); }
+  function f1(x) { return (Math.round(x * 10) / 10).toFixed(1); }
+  function f2(x) { return (Math.round(x * 100) / 100).toFixed(2); }
+  function compactInr(x) {
+    if (x >= 1e7) return '₹' + (x / 1e7).toFixed(x % 1e7 ? 1 : 0).replace(/\.0$/, '') + ' Cr';
+    if (x >= 1e5) return '₹' + (x / 1e5).toFixed(x % 1e5 ? 1 : 0).replace(/\.0$/, '') + ' L';
+    if (x >= 1e3) return '₹' + (x / 1e3).toFixed(x % 1e3 ? 1 : 0).replace(/\.0$/, '') + 'k';
+    return '₹' + Math.round(x);
+  }
+  function pct(x) { return x !== x ? 'n/a' : (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(1) + '%'; }
+  function niceCeil(x) {
+    var p = Math.pow(10, Math.floor(Math.log10(x))), m = x / p;
+    return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
+  }
+  var toastTimer;
+  function toast(t) {
+    var el = $('toast'); el.textContent = t; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.hidden = true; }, 2200);
+  }
+
+  var S = {
+    b: null, eng: null, sc: null, cb: null, roofOrder: null, orders: null, curve: null,
+    sel: [], rank: null, cmp: null, maxBudget: 5000000, view: 'treated', synthetic: true,
+    px: null, py: null, showAll: false, geom: null,
+    metric: 'degree', weather: R.syntheticWeather(), wxKey: 'synthetic'
+  };
+  var CITIES = {
+    erode: ['Erode', 11.341, 77.717], chennai: ['Chennai', 13.083, 80.270], hyderabad: ['Hyderabad', 17.385, 78.487],
+    ahmedabad: ['Ahmedabad', 23.023, 72.572], nagpur: ['Nagpur', 21.146, 79.088], jaipur: ['Jaipur', 26.912, 75.787], delhi: ['Delhi', 28.614, 77.209]
+  };
+  function fmtHeat(v) { return S.metric === 'degree' ? Math.round(v).toLocaleString('en-IN') : f1(v); }
+  function U() {
+    var thr = f1(params().thr);
+    return S.metric === 'degree'
+      ? { unit: '°C·h', legend: 'Degree-hours per day above ' + thr + ' °C', now: 'Heat above', avoided: 'Heat avoided', head: '°C·h/day above', headAv: '°C·h avoided', kpi: 'less heat per day above ' + thr + ' °C in each treated home (degree-hours), on average' }
+      : { unit: 'h', legend: 'Hours per day above ' + thr + ' °C', now: 'Hours above', avoided: 'Avoided', head: 'Hours/day above', headAv: 'Hours avoided', kpi: 'fewer hours per day above ' + thr + ' °C in each treated home, on average' };
+  }
+
+  /* ---------- parameters ---------- */
+  function params() {
+    var cost = parseFloat($('cost').value), fixed = parseFloat($('fixed').value);
+    return {
+      budget: parseFloat($('budget').value),
+      cost: cost > 0 ? cost : 250,
+      fixed: fixed >= 0 ? fixed : 0,
+      thr: parseFloat($('thr').value)
+    };
+  }
+
+  /* ---------- map ---------- */
+  function buildMap() {
+    var b = S.b, n = b.n, i;
+    var minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity, sLat = 0;
+    for (i = 0; i < n; i++) {
+      minLat = Math.min(minLat, b.lat[i]); maxLat = Math.max(maxLat, b.lat[i]);
+      minLon = Math.min(minLon, b.lon[i]); maxLon = Math.max(maxLon, b.lon[i]); sLat += b.lat[i];
+    }
+    var kx = Math.cos((sLat / n) * Math.PI / 180);
+    var w = Math.max((maxLon - minLon) * kx, 1e-4), h = Math.max(maxLat - minLat, 1e-4);
+    var pad = 30, W = 1000, Hmax = 640;
+    var s = Math.min((W - 2 * pad) / w, (Hmax - 2 * pad) / h);
+    var VW = w * s + 2 * pad, VH = h * s + 2 * pad;
+    S.px = new Float64Array(n); S.py = new Float64Array(n);
+    for (i = 0; i < n; i++) { S.px[i] = pad + (b.lon[i] - minLon) * kx * s; S.py[i] = pad + (maxLat - b.lat[i]) * s; }
+    var unit = s / 111; // viewBox units per km
+    var steps = [0.25, 0.5, 1, 2, 5, 10, 25, 50, 100], gk = 100;
+    for (i = 0; i < steps.length; i++) if (steps[i] * unit >= 80) { gk = steps[i]; break; }
+    var grid = '', x;
+    for (x = pad; x <= VW - pad + 0.1; x += gk * unit) grid += '<line x1="' + x.toFixed(1) + '" y1="' + pad + '" x2="' + x.toFixed(1) + '" y2="' + (VH - pad).toFixed(1) + '"/>';
+    for (x = pad; x <= VH - pad + 0.1; x += gk * unit) grid += '<line x1="' + pad + '" y1="' + x.toFixed(1) + '" x2="' + (VW - pad).toFixed(1) + '" y2="' + x.toFixed(1) + '"/>';
+    var wl = '', nW = b.wardNames.length, cx = new Float64Array(nW), cy = new Float64Array(nW), cn = new Float64Array(nW);
+    for (i = 0; i < n; i++) { cx[b.ward[i]] += S.px[i]; cy[b.ward[i]] += S.py[i]; cn[b.ward[i]]++; }
+    if (nW <= 40) for (i = 0; i < nW; i++) if (cn[i]) wl += '<text class="wardlabel" style="font-size:' + (15 * k).toFixed(1) + 'px;stroke-width:' + (4 * k).toFixed(1) + 'px" text-anchor="middle" x="' + (cx[i] / cn[i]).toFixed(1) + '" y="' + (cy[i] / cn[i]).toFixed(1) + '">' + esc(b.wardNames[i]) + '</text>';
+    var cw = $('map').clientWidth || 800, k = Math.max(1, 720 / cw), kd = Math.min(k, 1.7);
+    S.mapK = Math.round(k * 10) / 10;
+    var r = (n > 2500 ? 2.4 : n > 1500 ? 3.2 : 4) * kd;
+    var dots = '';
+    for (i = 0; i < n; i++) dots += '<circle class="d h0" cx="' + S.px[i].toFixed(1) + '" cy="' + S.py[i].toFixed(1) + '" r="' + r + '" data-i="' + i + '"/>';
+    var gtxt = gk >= 1 ? gk + ' km' : (gk * 1000) + ' m';
+    $('map').setAttribute('viewBox', '0 0 ' + VW.toFixed(1) + ' ' + VH.toFixed(1));
+    $('map').innerHTML = '<g class="grid">' + grid + '</g><g id="g-ward">' + wl + '</g><g id="g-base">' + dots + '</g><g id="g-sel"></g>' +
+      '<text class="scale" x="' + pad + '" y="' + (VH - 8).toFixed(1) + '" style="fill:var(--muted);font:500 ' + (13 * k).toFixed(1) + 'px var(--font-body)">Grid squares are ' + gtxt + ' wide</text>';
+    S.geom = { r: r, selR: r + 2.6 * kd };
+    S.dots = $('g-base').children;
+  }
+
+  function paintHeat() {
+    var h = S.sc.hNow, n = S.b.n, mn = Infinity, mx = -Infinity, i;
+    for (i = 0; i < n; i++) { if (h[i] < mn) mn = h[i]; if (h[i] > mx) mx = h[i]; }
+    var span = Math.max(mx - mn, 1e-9);
+    for (i = 0; i < n; i++) {
+      var bin = Math.min(4, Math.floor(5 * (h[i] - mn) / span));
+      S.dots[i].setAttribute('class', 'd h' + bin);
+    }
+    S.heatRange = [mn, mx];
+  }
+
+  function paintSelected() {
+    var out = '', k, i;
+    for (k = 0; k < S.sel.length; k++) {
+      i = S.sel[k];
+      out += '<circle class="sel" cx="' + S.px[i].toFixed(1) + '" cy="' + S.py[i].toFixed(1) + '" r="' + S.geom.selR + '" data-i="' + i + '"/>';
+    }
+    $('g-sel').innerHTML = out;
+    $('g-sel').setAttribute('display', S.view === 'treated' ? 'inline' : 'none');
+    $('map').setAttribute('aria-label', 'Map of ' + S.b.n.toLocaleString('en-IN') + ' roofs. ' + S.sel.length + ' selected for treatment.');
+  }
+
+  function paintLegend() {
+    var p = params(), r = S.heatRange || [0, 0];
+    var heat = '<span class="key"><span class="ramp"><i></i><i></i><i></i><i></i><i></i></span>' + U().legend + ': ' + fmtHeat(r[0]) + ' to ' + fmtHeat(r[1]) + '</span>';
+    $('legend').innerHTML = S.view === 'treated'
+      ? '<span class="key"><span class="sw sel"></span>Treated with a cool coating</span>' + heat
+      : heat;
+  }
+
+  /* ---------- tooltip on the map ---------- */
+  function showTip(e) {
+    var t = e.target, tip = $('tip');
+    if (!t || !t.getAttribute || t.getAttribute('data-i') === null) { tip.hidden = true; return; }
+    var i = +t.getAttribute('data-i'), b = S.b, wrap = $('mapwrap').getBoundingClientRect();
+    var rk = S.rank[i];
+    tip.innerHTML = '<b>Roof ' + esc(b.id[i]) + (rk ? ' · rank ' + rk : '') + '</b>' +
+      '<span><em>Ward</em>' + esc(b.wardNames[b.ward[i]]) + '</span>' +
+      '<span><em>Roof</em>' + MAT[b.mat[i]] + ', ' + b.storeys[i] + (b.storeys[i] === 1 ? ' storey' : ' storeys') + '</span>' +
+      '<span><em>Area</em>' + f1(b.area[i]) + ' m²</span>' +
+      '<span><em>' + U().now + '</em>' + fmtHeat(S.sc.hNow[i]) + ' ' + U().unit + '/day</span>' +
+      '<span><em>' + U().avoided + '</em>' + fmtHeat(S.sc.avoided[i]) + ' ' + U().unit + '/day</span>';
+    tip.hidden = false;
+    var x = e.clientX - wrap.left + 14, y = e.clientY - wrap.top + 14;
+    if (x + tip.offsetWidth > wrap.width - 4) x = e.clientX - wrap.left - tip.offsetWidth - 14;
+    if (y + tip.offsetHeight > wrap.height - 4) y = e.clientY - wrap.top - tip.offsetHeight - 14;
+    tip.style.left = Math.max(4, x) + 'px'; tip.style.top = Math.max(4, y) + 'px';
+  }
+
+  /* ---------- KPIs ---------- */
+  function paintKpis(p) {
+    var c = S.cmp, k = S.sel.length, i, s = 0;
+    for (i = 0; i < k; i++) s += S.sc.avoided[S.sel[i]];
+    $('k-gain').textContent = pct(c.gainWard);
+    $('k-gain-note').textContent = k
+      ? 'more modelled relief than treating random roofs in the hottest wards. ' + pct(c.gainRand) + ' versus random roofs anywhere.'
+      : S.roofOrder.length === 0
+        ? 'At ' + f1(p.thr) + ' °C no roof gets hot enough in this weather. Lower the danger threshold.'
+        : 'Raise the budget to treat at least one roof.';
+    $('k-roofs').textContent = k.toLocaleString('en-IN') + ' of ' + S.b.n.toLocaleString('en-IN');
+    $('k-spent').textContent = inr(c.roof.spent) + ' of ' + inr(p.budget);
+    $('k-hours').textContent = (k ? fmtHeat(s / k) : '0') + ' ' + U().unit;
+    $('k-hours-note').textContent = U().kpi;
+  }
+
+  /* ---------- chart ---------- */
+  var CH = { W: 640, H: 300, l: 58, r: 88, t: 26, b: 40 };
+  function xs(v) { return CH.l + v / S.maxBudget * (CH.W - CH.l - CH.r); }
+  function ys(v) { return CH.H - CH.b - v / S.yMax * (CH.H - CH.t - CH.b); }
+
+  function paintChart(p) {
+    var c = S.curve, i, last = c.x.length - 1;
+    var cw = Math.round($('chartwrap').clientWidth) || 640, narrow = cw < 480;
+    CH.W = Math.max(300, Math.min(760, cw)); CH.H = narrow ? 270 : 300; CH.l = narrow ? 58 : 58; CH.r = narrow ? 76 : 88;
+    $('chart').setAttribute('viewBox', '0 0 ' + CH.W + ' ' + CH.H);
+    $('chart-note').textContent = 'Relief score = heat avoided per day (' + U().unit + ') × ' + (S.b.people ? 'people in the building' : 'roof area in m². Area stands in for the number of people, which is an assumption') + '. Baselines average ' + N_SEEDS + ' random draws.';
+    var top = Math.max(c.roof[last], c.ward[last], c.rand[last], 1e-9);
+    var ystep = niceCeil(top / 4 * 0.999);
+    S.yMax = Math.ceil(top / ystep) * ystep;
+    var g = '', t;
+    for (t = 0; t <= S.yMax + 1e-9; t += ystep) {
+      g += '<line class="' + (t === 0 ? 'axis' : 'gridl') + '" x1="' + CH.l + '" x2="' + (CH.W - CH.r) + '" y1="' + ys(t).toFixed(1) + '" y2="' + ys(t).toFixed(1) + '"/>' +
+        '<text x="' + (CH.l - 8) + '" y="' + (ys(t) + 4).toFixed(1) + '" text-anchor="end" class="num">' + Math.round(t).toLocaleString('en-IN') + '</text>';
+    }
+    var xt = niceCeil(S.maxBudget / (CH.W < 480 ? 3 : 5));
+    for (t = 0; t <= S.maxBudget + 1e-9; t += xt) {
+      g += '<text x="' + xs(t).toFixed(1) + '" y="' + (CH.H - CH.b + 18) + '" text-anchor="middle" class="num">' + compactInr(t) + '</text>';
+    }
+    g += '<text x="' + ((CH.l + CH.W - CH.r) / 2) + '" y="' + (CH.H - 4) + '" text-anchor="middle">Budget</text>';
+    function path(a) { return a.map(function (v, k) { return (k ? 'L' : 'M') + xs(c.x[k]).toFixed(1) + ' ' + ys(v).toFixed(1); }).join(''); }
+    g += '<path class="ln l-rand" d="' + path(c.rand) + '"/><path class="ln l-ward" d="' + path(c.ward) + '"/><path class="ln l-roof" d="' + path(c.roof) + '"/>';
+    // end labels, pushed apart so they never overlap
+    var labs = [{ k: 'roof', t: 'Roof-level', y: ys(c.roof[last]) }, { k: 'ward', t: 'Ward-level', y: ys(c.ward[last]) }, { k: 'rand', t: 'Random', y: ys(c.rand[last]) }];
+    labs.sort(function (a, b2) { return a.y - b2.y; });
+    for (i = 1; i < labs.length; i++) if (labs[i].y - labs[i - 1].y < 16) labs[i].y = labs[i - 1].y + 16;
+    labs.forEach(function (L) { g += '<text class="endl ' + L.k + '" x="' + (CH.W - CH.r + 8) + '" y="' + (L.y + 4).toFixed(1) + '">' + L.t + '</text>'; });
+    // current budget
+    var cx = xs(p.budget);
+    g += '<line class="cur" x1="' + cx.toFixed(1) + '" x2="' + cx.toFixed(1) + '" y1="' + CH.t + '" y2="' + (CH.H - CH.b) + '"/>';
+    var anchor = cx > CH.W - CH.r - 70 ? 'end' : 'start', lx = anchor === 'end' ? cx - 6 : cx + 6;
+    g += '<text class="curlab" x="' + lx.toFixed(1) + '" y="' + (CH.t - 8) + '" text-anchor="' + anchor + '">Your budget ' + compactInr(p.budget) + '</text>';
+    var cm = S.cmp;
+    g += '<circle class="pt pt-rand" cx="' + cx.toFixed(1) + '" cy="' + ys(cm.randMean).toFixed(1) + '" r="4.5"/>' +
+      '<circle class="pt pt-ward" cx="' + cx.toFixed(1) + '" cy="' + ys(cm.wardMean).toFixed(1) + '" r="4.5"/>' +
+      '<circle class="pt pt-roof" cx="' + cx.toFixed(1) + '" cy="' + ys(cm.roof.benefit).toFixed(1) + '" r="5.5"/>';
+    g += '<line class="hov" id="hov" y1="' + CH.t + '" y2="' + (CH.H - CH.b) + '" hidden/>';
+    $('chart').innerHTML = g;
+
+    var rows = '<thead><tr><th>Budget</th><th>Roof-level</th><th>Ward-level</th><th>Random</th></tr></thead><tbody>';
+    for (i = 0; i <= last; i += 4) rows += '<tr><td>' + inr(c.x[i]) + '</td><td>' + Math.round(c.roof[i]).toLocaleString('en-IN') + '</td><td>' + Math.round(c.ward[i]).toLocaleString('en-IN') + '</td><td>' + Math.round(c.rand[i]).toLocaleString('en-IN') + '</td></tr>';
+    $('chart-table').innerHTML = rows + '</tbody>';
+  }
+
+  function chartIndex(e) {
+    var r = $('chart').getBoundingClientRect(), vx = (e.clientX - r.left) / r.width * CH.W;
+    var f = (vx - CH.l) / (CH.W - CH.l - CH.r) * CURVE_PTS;
+    return Math.max(0, Math.min(CURVE_PTS, Math.round(f)));
+  }
+  function chartHover(e) {
+    var k = chartIndex(e), c = S.curve, hv = $('hov'), tip = $('ctip'), r = $('chart').getBoundingClientRect();
+    var x = xs(c.x[k]);
+    hv.setAttribute('x1', x); hv.setAttribute('x2', x); hv.removeAttribute('hidden');
+    tip.innerHTML = '<b>Budget ' + inr(c.x[k]) + '</b>' +
+      '<span><em>Roof-level</em>' + Math.round(c.roof[k]).toLocaleString('en-IN') + '</span>' +
+      '<span><em>Ward-level</em>' + Math.round(c.ward[k]).toLocaleString('en-IN') + '</span>' +
+      '<span><em>Random</em>' + Math.round(c.rand[k]).toLocaleString('en-IN') + '</span>';
+    tip.hidden = false;
+    var px = x / CH.W * r.width, w = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(r.width - w, px + 12 + w > r.width ? px - w - 12 : px + 12)) + 'px';
+  }
+  function chartLeave() { $('ctip').hidden = true; var hv = $('hov'); if (hv) hv.setAttribute('hidden', ''); }
+  function chartClick(e) {
+    var k = chartIndex(e), el = $('budget'), step = +el.step, mn = +el.min, mx = +el.max;
+    var v = Math.round(S.curve.x[k] / step) * step;
+    el.value = Math.max(mn, Math.min(mx, v));
+    schedule(0);
+  }
+
+  /* ---------- who gets picked ---------- */
+  function paintMix() {
+    var b = S.b, n = b.n, k = S.sel.length, i, rows = [], matAll = [0, 0, 0, 0], matSel = [0, 0, 0, 0], one = [0, 0], oneSel = [0, 0];
+    if (!k) { $('mix').innerHTML = '<p class="hint">No roofs are treated at this budget.</p>'; return; }
+    for (i = 0; i < n; i++) { matAll[b.mat[i]]++; one[b.storeys[i] === 1 ? 0 : 1]++; }
+    S.sel.forEach(function (j) { matSel[b.mat[j]]++; oneSel[b.storeys[j] === 1 ? 0 : 1]++; });
+    function row(name, a, s2, tot) {
+      var pa = 100 * a / n, ps = 100 * s2 / k;
+      return '<div class="item"><div class="name"><span>' + name + '</span></div>' +
+        '<div class="bar"><span class="track"><span class="fill t" style="width:' + ps.toFixed(1) + '%"></span></span><span class="num">' + Math.round(ps) + '%</span></div>' +
+        '<div class="bar"><span class="track"><span class="fill a" style="width:' + pa.toFixed(1) + '%"></span></span><span class="num">' + Math.round(pa) + '%</span></div></div>';
+    }
+    var html = '<div class="keyrow"><span><i style="background:var(--accent)"></i>Share of treated roofs</span><span><i style="background:var(--muted)"></i>Share of all roofs</span></div>';
+    for (i = 0; i < 4; i++) if (matAll[i]) html += row(MAT[i].charAt(0).toUpperCase() + MAT[i].slice(1), matAll[i], matSel[i]);
+    html += row('One storey', one[0], oneSel[0]) + row('Two or more storeys', one[1], oneSel[1]);
+    $('mix').innerHTML = html;
+  }
+
+  /* ---------- work order ---------- */
+  var COLS = ['rank', 'building_id', 'ward', 'material', 'storeys', 'area_m2', 'hours_now', 'hours_avoided', 'mean_drop_c', 'cost'];
+  function rowVals(k) {
+    var i = S.sel[k], b = S.b;
+    return [k + 1, b.id[i], b.wardNames[b.ward[i]], MAT[b.mat[i]], b.storeys[i], b.area[i], S.sc.hNow[i], S.sc.avoided[i], S.eng.meanDrop[i], S.cb.cost[i]];
+  }
+  function paintTable() {
+    var k = S.sel.length, show = S.showAll ? k : Math.min(k, 12), j, html;
+    html = '<thead><tr><th>Rank</th><th>Roof</th><th class="l">Ward</th><th class="l">Material</th><th>Storeys</th><th>Area m²</th><th>' + U().head + '</th><th>' + U().headAv + '</th><th>Mean drop °C</th><th>Cost</th></tr></thead><tbody>';
+    for (j = 0; j < show; j++) {
+      var v = rowVals(j);
+      html += '<tr><td>' + v[0] + '</td><td>' + esc(v[1]) + '</td><td class="l">' + esc(v[2]) + '</td><td class="l">' + v[3] + '</td><td>' + v[4] + '</td><td>' + f1(v[5]) + '</td><td>' + fmtHeat(v[6]) + '</td><td><span class="pill">' + fmtHeat(v[7]) + '</span></td><td>' + f2(v[8]) + '</td><td>' + inr(v[9]) + '</td></tr>';
+    }
+    if (!k) html += '<tr><td colspan="10" class="l">No roofs fit in this budget.</td></tr>';
+    $('wo').innerHTML = html + '</tbody>';
+    $('wo-count').textContent = k ? 'Showing ' + show.toLocaleString('en-IN') + ' of ' + k.toLocaleString('en-IN') + ' roofs, best first' : '';
+    $('btn-all').hidden = k <= 12;
+    $('btn-all').textContent = S.showAll ? 'Show top 12' : 'Show all ' + k.toLocaleString('en-IN');
+  }
+  function csvText() {
+    var out = [COLS.map(function (c) { return S.metric === 'degree' ? c.replace('hours_', 'degree_hours_') : c; }).join(',')], j;
+    for (j = 0; j < S.sel.length; j++) {
+      var v = rowVals(j);
+      out.push([v[0], '"' + String(v[1]).replace(/"/g, '""') + '"', '"' + String(v[2]).replace(/"/g, '""') + '"', v[3], v[4], f2(v[5]), f2(v[6]), f2(v[7]), f2(v[8]), Math.round(v[9])].join(','));
+    }
+    return out.join('\n');
+  }
+  function copyText(text, okMsg) {
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      toast(ok ? okMsg : 'Copy was blocked. Select the table and copy it by hand.');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast(okMsg); }, fallback);
+    else fallback();
+  }
+
+  /* ---------- pipeline (cheap steps re-run on cheap inputs) ---------- */
+  function recomputeBudget() {
+    var p = params(), take = [], i;
+    R.walk(S.roofOrder, S.cb.cost, S.cb.benefit, p.budget, take);
+    S.sel = take;
+    S.rank = new Int32Array(S.b.n);
+    for (i = 0; i < take.length; i++) S.rank[take[i]] = i + 1;
+    S.cmp = R.compareAt(S.roofOrder, S.orders, S.cb, p.budget);
+    $('o-budget').textContent = inr(p.budget);
+    paintKpis(p); paintSelected(); paintChart(p); paintMix(); paintTable();
+  }
+  function recomputeCost() {
+    var p = params();
+    S.cb = R.costBenefit(S.b, S.sc.avoided, p.cost, p.fixed);
+    S.roofOrder = R.rankRoofs(S.cb, S.b, S.eng.meanDrop);
+    S.curve = R.curve(S.roofOrder, S.orders, S.cb, S.maxBudget, CURVE_PTS);
+    recomputeBudget();
+  }
+  function recomputeThreshold() {
+    var p = params();
+    $('o-thr').textContent = f1(p.thr) + ' °C';
+    S.sc = R.scoreAt(S.eng, p.thr, S.metric);
+    S.orders = R.baselineOrders(S.b, S.sc.hNow, N_SEEDS);
+    paintHeat(); paintLegend();
+    recomputeCost();
+  }
+  var pending = -1, queued = false;
+  function schedule(level) { // 2 = threshold, 1 = cost, 0 = budget
+    pending = Math.max(pending, level);
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () {
+      queued = false; var l = pending; pending = -1;
+      if (l >= 2) recomputeThreshold(); else if (l === 1) recomputeCost(); else recomputeBudget();
+    });
+  }
+
+  /* ---------- data ---------- */
+  function setBudgetRange(synthetic) {
+    var el = $('budget'), p = params(), mx, st, def;
+    if (synthetic) { mx = 5000000; st = 50000; def = 1000000; }
+    else {
+      var tot = 0, i; for (i = 0; i < S.b.n; i++) tot += S.b.area[i] * p.cost + p.fixed;
+      mx = niceCeil(tot * 0.5); st = niceCeil(mx / 100) / (niceCeil(mx / 100) / (mx / 100) > 2 ? 2 : 1);
+      st = Math.max(1, Math.round(st)); def = Math.round(mx * 0.2 / st) * st;
+    }
+    el.min = st; el.max = mx; el.step = st; el.value = def;
+    S.maxBudget = mx;
+  }
+  function setData(b, synthetic) {
+    S.b = b; S.synthetic = synthetic; S.showAll = false;
+    S.eng = R.prepare(b, S.weather);
+    buildMap();
+    setBudgetRange(synthetic);
+    recomputeThreshold();
+    paintNotice();
+  }
+  function loadSample() { setData(R.fromRows(D.rows, D.wards), true); $('data-msg').className = 'msg'; $('data-msg').textContent = 'Showing ' + S.b.n.toLocaleString('en-IN') + ' synthetic buildings in ' + S.b.wardNames.length + ' wards.'; }
+  function onFile(e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      try {
+        var b = R.parseCsv(rd.result);
+        setData(b, false);
+        $('data-msg').className = 'msg';
+        $('data-msg').textContent = 'Loaded ' + b.n.toLocaleString('en-IN') + ' buildings from ' + f.name + (b.people ? ', using the occupants column as the number of people.' : '.');
+      } catch (err) {
+        $('data-msg').className = 'msg err';
+        $('data-msg').textContent = 'Could not read ' + f.name + '. ' + err.message;
+      }
+      e.target.value = '';
+    };
+    rd.onerror = function () { $('data-msg').className = 'msg err'; $('data-msg').textContent = 'Could not read that file.'; };
+    rd.readAsText(f);
+  }
+
+  /* ---------- static tables ---------- */
+  function paintSanity() {
+    var rows = R.sanity(), html = '<thead><tr><th class="l">Roof</th><th>1 storey, mean</th><th>1 storey, peak</th><th>2 storeys, mean</th><th>2 storeys, peak</th></tr></thead><tbody>', m;
+    for (m = 0; m < rows.length; m += 2) {
+      html += '<tr><td class="l">' + rows[m].material.charAt(0).toUpperCase() + rows[m].material.slice(1) + '</td><td>' + f1(rows[m].mean) + ' °C</td><td>' + f1(rows[m].peak) + ' °C</td><td>' + f1(rows[m + 1].mean) + ' °C</td><td>' + f1(rows[m + 1].peak) + ' °C</td></tr>';
+    }
+    $('sanity').innerHTML = html + '</tbody>';
+  }
+
+
+  /* ---------- weather ---------- */
+  function paintNotice() {
+    $('notice').textContent = (S.synthetic ? 'Synthetic demo city. ' : 'Your uploaded buildings. ') +
+      (S.wxKey === 'synthetic' ? 'Idealised hot-week weather. ' : 'Real weather for ' + CITIES[S.wxKey][0] + '. ') +
+      'Indoor temperatures are modelled from assumed roof properties, not measured.';
+  }
+  function fetchWeather(key) {
+    var c = CITIES[key], ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + c[1] + '&longitude=' + c[2] +
+      '&hourly=temperature_2m,shortwave_radiation&past_days=6&forecast_days=1&timezone=auto';
+    return fetch(url, ctl ? { signal: ctl.signal } : {}).then(function (r) {
+      if (!r.ok) throw new Error('The weather service answered with status ' + r.status + '.');
+      return r.json().catch(function () { throw new Error('The weather service sent an unreadable reply.'); });
+    }).then(function (j) {
+      if (!j || !j.hourly || !j.hourly.temperature_2m || !j.hourly.shortwave_radiation) throw new Error('The weather service sent an unexpected reply.');
+      return R.weatherFromArrays(j.hourly.temperature_2m, j.hourly.shortwave_radiation);
+    }).then(function (w) { clearTimeout(timer); return w; }, function (e) {
+      clearTimeout(timer);
+      if (e && e.name === 'AbortError') throw new Error('The weather service took too long.');
+      if (e instanceof TypeError) throw new Error('Could not reach the weather service. Check your connection.');
+      throw e;
+    });
+  }
+  function wxSummary(w) {
+    var i, sum = 0, mx = -Infinity, g = 0;
+    for (i = 0; i < w.n; i++) { sum += w.temp[i]; if (w.temp[i] > mx) mx = w.temp[i]; if (w.ghi[i] > g) g = w.ghi[i]; }
+    return 'mean ' + f1(sum / w.n) + ' °C, hottest hour ' + f1(mx) + ' °C, peak sun ' + Math.round(g) + ' W/m²';
+  }
+  function applyWeather(w, key, msg) {
+    S.weather = w; S.wxKey = key; S.eng = R.prepare(S.b, w);
+    $('wx').value = key; $('wx-msg').className = 'msg'; $('wx-msg').textContent = msg;
+    paintNotice(); recomputeThreshold();
+  }
+  function onWeather() {
+    var key = $('wx').value;
+    if (key === 'synthetic') { var w = R.syntheticWeather(); applyWeather(w, 'synthetic', 'Idealised hot week, synthetic: ' + wxSummary(w) + '.'); return; }
+    $('wx').disabled = true; $('wx-msg').className = 'msg'; $('wx-msg').textContent = 'Loading real weather for ' + CITIES[key][0] + '...';
+    fetchWeather(key).then(function (w) {
+      $('wx').disabled = false;
+      applyWeather(w, key, 'Real weather for ' + CITIES[key][0] + ' from Open-Meteo, last 6 days plus today, loaded ' + new Date().toLocaleTimeString() + ': ' + wxSummary(w) + '.');
+    }).catch(function (e) {
+      $('wx').disabled = false; $('wx').value = S.wxKey;
+      $('wx-msg').className = 'msg err';
+      $('wx-msg').textContent = e.message + ' Still using ' + (S.wxKey === 'synthetic' ? 'the synthetic week.' : CITIES[S.wxKey][0] + '.');
+    });
+  }
+  var METRIC_NOTE = {
+    degree: 'Adds up how far indoor air is above the threshold, hour by hour. Tells very hot roofs apart from barely hot ones.',
+    hours: 'Counts the hours above the threshold. A roof just over the line can tie with a much hotter one.'
+  };
+  function download(name, text) {
+    try {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' })); a.download = name;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      toast('Downloaded ' + name);
+    } catch (e) { copyText(text, 'Download was blocked, so the CSV was copied instead'); }
+  }
+
+  /* ---------- wire up ---------- */
+  function init() {
+    paintSanity();
+    $('budget').addEventListener('input', function () { schedule(0); });
+    $('cost').addEventListener('input', function () { schedule(1); });
+    $('fixed').addEventListener('input', function () { schedule(1); });
+    $('thr').addEventListener('input', function () { schedule(2); });
+    Array.prototype.forEach.call(document.getElementsByName('view'), function (r) {
+      r.addEventListener('change', function () { if (r.checked) { S.view = r.value; paintSelected(); paintLegend(); } });
+    });
+    $('map').addEventListener('pointermove', showTip);
+    $('map').addEventListener('pointerdown', showTip);
+    $('map').addEventListener('pointerleave', function () { $('tip').hidden = true; });
+    $('chart').addEventListener('pointermove', chartHover);
+    $('chart').addEventListener('pointerleave', chartLeave);
+    $('chart').addEventListener('click', chartClick);
+    Array.prototype.forEach.call(document.getElementsByName('metric'), function (r) {
+      r.addEventListener('change', function () { if (r.checked) { S.metric = r.value; $('metric-note').textContent = METRIC_NOTE[S.metric]; schedule(2); } });
+    });
+    $('metric-note').textContent = METRIC_NOTE[S.metric];
+    $('wx').addEventListener('change', onWeather);
+    var wx0 = S.weather; $('wx-msg').textContent = 'Idealised hot week, synthetic: ' + wxSummary(wx0) + '.';
+    if ($('btn-dl')) $('btn-dl').addEventListener('click', function () { download(S.metric === 'degree' ? 'roofrx_work_order.csv' : 'roofrx_work_order_hours.csv', csvText()); });
+    $('btn-all').addEventListener('click', function () { S.showAll = !S.showAll; paintTable(); });
+    $('btn-copy').addEventListener('click', function () { copyText(csvText(), 'Copied ' + S.sel.length + ' roofs as CSV'); });
+    $('btn-copyhdr').addEventListener('click', function () { copyText($('csv-hdr').textContent, 'Copied the header'); });
+    $('btn-sample').addEventListener('click', loadSample);
+    $('btn-upload').addEventListener('click', function () { $('file').click(); });
+    $('file').addEventListener('change', onFile);
+    var lastW = window.innerWidth, rt;
+    window.addEventListener('resize', function () {
+      cancelAnimationFrame(rt);
+      rt = requestAnimationFrame(function () {
+        if (window.innerWidth === lastW || !S.cmp) return;
+        lastW = window.innerWidth;
+        var k = Math.round(Math.max(1, 720 / ($('map').clientWidth || 800)) * 10) / 10;
+        if (k !== S.mapK) { buildMap(); paintHeat(); paintSelected(); }
+        paintChart(params());
+      });
+    });
+    loadSample();
+  }
+  init();
+})();
+
+</script>
