@@ -1,0 +1,243 @@
+<title>RoofRx</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400..700&display=swap">
+<style>
+/*CSS*/
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 15.5 16 5l13 10.5" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 14v12h18V14" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="20" r="3" fill="var(--heat-3)"/></svg>
+      RoofRx
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#demo">Demo</a><a href="#method">Method</a><a href="#limits">Limits</a>
+    </nav>
+  </header>
+
+  <section class="intro">
+    <h1>Cool the right roofs first.</h1>
+    <div>
+      <p class="lede">RoofRx ranks individual rooftops for a cool-roof coating, so a limited budget reaches the homes that gain the most.</p>
+      <p class="lede">The demo runs a heat model for 1,200 synthetic homes in your browser. Change the budget and watch the selection move.</p>
+    </div>
+  </section>
+
+  <div class="notice" id="notice">Synthetic demo city and an idealised hot week. Indoor temperatures are modelled from assumed roof properties, not measured.</div>
+
+  <section id="demo" class="demo" aria-label="Live demo">
+    <div class="stack">
+    <div class="card stage">
+      <div class="card-head">
+        <h2>Treatment map</h2>
+        <div class="seg" role="radiogroup" aria-label="Map view">
+          <label><input type="radio" name="view" value="treated" checked><span>Treated roofs</span></label>
+          <label><input type="radio" name="view" value="heat"><span>Heat map</span></label>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="mapwrap" id="mapwrap">
+          <svg id="map" role="img" aria-label="Map of roofs"></svg>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <div class="card chartcard">
+      <div class="card-head">
+        <h2>Relief as the budget grows</h2>
+        <span class="hint">Click the chart to set the budget</span>
+      </div>
+      <div class="card-body">
+        <div class="chartwrap" id="chartwrap">
+          <svg id="chart" viewBox="0 0 640 300" role="img" aria-label="Line chart of modelled relief against budget for three targeting strategies"></svg>
+          <div class="ctip" id="ctip" hidden></div>
+        </div>
+        <p class="hint" id="chart-note" style="margin-top:8px"></p>
+        <details class="tbl">
+          <summary>View as table</summary>
+          <div class="scroll"><table id="chart-table"></table></div>
+        </details>
+      </div>
+    </div>
+    </div>
+
+    <aside class="panel" aria-label="Scenario">
+      <div class="card lead" aria-live="polite">
+        <p class="hint">Roof-level vs ward-level targeting, same budget</p>
+        <div class="big num" id="k-gain">&nbsp;</div>
+        <p id="k-gain-note"></p>
+        <div class="split">
+          <div><b class="num" id="k-roofs">0</b><span id="k-spent"></span></div>
+          <div><b class="num" id="k-hours">0 h</b><span id="k-hours-note"></span></div>
+        </div>
+      </div>
+
+      <div class="card scenario">
+        <div class="card-head"><h2>Scenario</h2></div>
+        <div class="controls">
+          <div class="field">
+            <div class="row"><label for="budget">Budget</label><output class="num" id="o-budget" for="budget"></output></div>
+            <input type="range" id="budget" min="50000" max="5000000" step="50000" value="1000000">
+          </div>
+          <div class="pair">
+            <div class="field">
+              <label for="cost">Coating, ₹ per m²</label>
+              <input type="number" id="cost" min="1" step="10" value="250">
+            </div>
+            <div class="field">
+              <label for="fixed">Fixed, ₹ per roof</label>
+              <input type="number" id="fixed" min="0" step="100" value="0">
+            </div>
+          </div>
+          <div class="field">
+            <div class="row"><label for="thr">Danger threshold, indoor</label><output class="num" id="o-thr" for="thr"></output></div>
+            <input type="range" id="thr" min="25" max="40" step="0.5" value="35">
+            <small>An assumption you can change. Heat-hours count the hours per day indoor air stays above it.</small>
+          </div>
+          <div class="field">
+            <span class="lab">Heat measure</span>
+            <div class="seg" role="radiogroup" aria-label="Heat measure">
+              <label><input type="radio" name="metric" value="degree" checked><span>Degree-hours</span></label>
+              <label><input type="radio" name="metric" value="hours"><span>Hours above</span></label>
+            </div>
+            <small id="metric-note"></small>
+          </div>
+          <div class="field">
+            <label for="wx">Weather</label>
+            <select id="wx">
+              <option value="synthetic">Idealised hot week (synthetic)</option>
+              <!--STANDALONE--><optgroup label="Real, last 6 days plus today">
+                <option value="erode">Erode</option><option value="chennai">Chennai</option><option value="hyderabad">Hyderabad</option>
+                <option value="ahmedabad">Ahmedabad</option><option value="nagpur">Nagpur</option><option value="jaipur">Jaipur</option><option value="delhi">Delhi</option>
+              </optgroup><!--/STANDALONE-->
+            </select>
+            <span class="msg" id="wx-msg" role="status"></span>
+            <!--PREVIEW--><small>Real weather is available on the hosted copy of this page. This preview blocks network requests.</small><!--/PREVIEW-->
+          </div>
+          <div class="field">
+            <span class="lab">Buildings</span>
+            <div class="data-row">
+              <button type="button" class="btn" id="btn-sample">Sample city</button>
+              <button type="button" class="btn" id="btn-upload">Upload CSV</button>
+              <input type="file" id="file" accept=".csv,text/csv" hidden>
+            </div>
+            <span class="msg" id="data-msg" role="status">Showing 1,200 synthetic buildings in 8 wards.</span>
+            <details class="fmt">
+              <summary>CSV format</summary>
+              <code id="csv-hdr">building_id,ward,lat,lon,area_m2,material,storeys,occupants</code>
+              <p>material is metal, concrete, tile or other. storeys and occupants are optional. Storeys defaults to 1. If occupants is present, it replaces roof area as the number of people each roof helps.</p>
+              <button type="button" class="btn" id="btn-copyhdr">Copy header</button>
+            </details>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="results" aria-label="Picks and work order">
+    <div class="card">
+      <div class="card-head"><h2>Who gets picked</h2></div>
+      <div class="card-body">
+        <div class="mix" id="mix"></div>
+      </div>
+    </div>
+
+    <div class="card" aria-label="Work order">
+    <div class="card-head">
+      <h2>Work order</h2>
+      <div class="table-actions">
+        <span class="hint" id="wo-count"></span>
+        <button type="button" class="btn" id="btn-all">Show all</button>
+        <!--STANDALONE--><button type="button" class="btn" id="btn-dl">Download CSV</button><!--/STANDALONE-->
+        <button type="button" class="btn primary" id="btn-copy">Copy CSV</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="tscroll"><table id="wo"></table></div>
+    </div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="sec-title">
+      <h2>How RoofRx decides</h2>
+      <p>Three steps, each simple enough to check by hand.</p>
+    </div>
+    <div class="steps" style="margin-top:16px">
+      <div class="card step">
+        <h3>Read each roof</h3>
+        <p>Every building needs a footprint area, a roof material and a ward. Material can come from a survey or from an image classifier trained on aerial crops. The classifier scripts are in the repository and have not been trained yet.</p>
+      </div>
+      <div class="card step">
+        <h3>Model the heat</h3>
+        <p>Sun on the roof raises its surface temperature. Heat flows into the home through the roof and out through walls and ventilation. Hourly steps give the hours per day indoor air stays above your threshold, before and after a coating.</p>
+        <div class="eq"><i>T</i><sub>sa</sub> = <i>T</i><sub>out</sub> + <i>α</i>·<i>I</i> / <i>h</i><sub>out</sub><br><i>C</i> d<i>T</i><sub>in</sub>/dt = <i>U</i>(<i>T</i><sub>sa</sub> − <i>T</i><sub>in</sub>) + <i>H</i>(<i>T</i><sub>out</sub> − <i>T</i><sub>in</sub>)</div>
+      </div>
+      <div class="card step">
+        <h3>Spend the budget</h3>
+        <p>Each roof gets a benefit (heat-hours avoided × area) and a cost (area × coating price). Roofs are taken in order of benefit per rupee until the money runs out. The ward-level baseline treats random roofs in the hottest wards first.</p>
+        <div class="eq">benefit = hours avoided × area<br>cost = area × price + fixed</div>
+      </div>
+    </div>
+
+    <div class="sec-title" style="margin-top:36px">
+      <h2>What is built</h2>
+      <p>Each part and where it stands.</p>
+    </div>
+    <div class="flow" style="margin-top:16px">
+      <div class="node n-data"><b>Building data</b><span>Footprint area, roof material, ward, storeys, optional occupants. CSV upload or the synthetic city.</span><i class="tag">Built and tested</i></div>
+      <div class="node n-heat"><b>Heat model</b><span>Sol-air temperature and a lumped indoor balance, hour by hour, before and after a coating.</span><i class="tag">Built, matches the Python model</i></div>
+      <div class="node n-opt"><b>Optimizer</b><span>Benefit per cost, greedy selection inside the budget, compared with ward-level and random targeting.</span><i class="tag">Built, matches the Python model</i></div>
+      <div class="node n-out"><b>Map and work order</b><span>Ranked roofs, relief chart and CSV export.</span><i class="tag">This page</i></div>
+      <div class="node n-cls dashed"><b>Roof classifier</b><span>Reads roof material from aerial image crops with a fine-tuned CNN.</span><i class="tag todo">Scripts written, not trained</i></div>
+      <div class="node n-wx"><b>Weather</b><span>Hourly temperature and sunshine from Open-Meteo, or the synthetic hot week.</span><i class="tag">Real data on the hosted copy</i></div>
+    </div>
+
+    <div class="card sanity" style="margin-top:20px">
+      <div>
+        <h3>Does the model behave?</h3>
+        <p>Cool-roof programmes commonly report indoor drops of a few degrees. This table is what the model produces from its assumed inputs, so it is a plausibility check and not a validation. Peak-hour drops are large, and real sensors may show less.</p>
+      </div>
+      <div class="scroll"><table id="sanity"></table></div>
+    </div>
+  </section>
+
+  <section id="limits">
+    <div class="sec-title">
+      <h2>What this is and is not</h2>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <ul class="limits">
+        <li><b>Modelled, not measured</b>Indoor temperatures come from a simple model. Validate it with indoor sensors before acting on it.</li>
+        <li><b>Assumed roof properties</b>Absorptance and heat-transfer values are placeholders until they are replaced with cited sources.</li>
+        <li><b>Synthetic city</b>The 1,200 buildings and the hot-week weather are generated. The size of the gain depends on how the wards were generated, so it is not a finding about any real city.</li>
+        <li><b>Area stands in for people</b>Larger roofs count as more occupants. Real population data would change the ranking.</li>
+        <li><b>Real weather, synthetic homes</b>The weather picker loads real hourly data. The buildings stay synthetic until you upload your own CSV.</li>
+        <li><b>A week is a snapshot</b>Seven days of weather is not a hot-season average. Results can change a lot with the week you load.</li>
+        <li><b>Greedy selection</b>Taking roofs by benefit per rupee is a standard heuristic and is not guaranteed optimal.</li>
+        <li><b>Our own baseline</b>The ward-level comparison is a simple version we built. It is not a reimplementation of any city tool.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>RoofRx · ForgeHacks Online 2026 · AI + Climate</span>
+    <span>The browser model is checked against the Python model on the same data.</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+window.ROOFRX_DATA = /*DATA*/;
+</script>
+<script>
+/*ENGINE*/
+</script>
+<script>
+/*APP*/
+</script>
