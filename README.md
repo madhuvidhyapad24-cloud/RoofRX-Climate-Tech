@@ -7,7 +7,7 @@ programme reaches the homes that gain the most. It combines an hourly indoor-hea
 benefit-per-cost optimizer and, optionally, an image classifier that reads roof material from aerial crops.
 
 **Live site:** https://madhuvidhyapad24-cloud.github.io/RoofRX-Climate-Tech/
-
+**video demo:** https://drive.google.com/file/d/1RaKqIb2D_zPOnj_9_CKcXsr44Sk8SP3-/view?usp=sharing
 ![RoofRx map and results](docs/screenshots/desktop-light.png)
 
 ## Problem
