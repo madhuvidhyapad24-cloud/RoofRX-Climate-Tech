@@ -6,7 +6,7 @@ RoofRx ranks individual rooftops for a cool-roof coating under a fixed budget, s
 programme reaches the homes that gain the most. It combines an hourly indoor-heat model, a
 benefit-per-cost optimizer and, optionally, an image classifier that reads roof material from aerial crops.
 
-**Live site:** add your GitHub Pages link here after you enable Pages (steps below).
+**Live site:** https://madhuvidhyapad24-cloud.github.io/RoofRX-Climate-Tech/
 
 ![RoofRx map and results](docs/screenshots/desktop-light.png)
 
